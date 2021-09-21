@@ -46,23 +46,21 @@ var (
 
 // Disk represents a EBS volume
 type Disk struct {
-	VolumeID   string
-	DiskType   string
-	WWN        string
-	Name       string
-	Shareable  bool
-
-	CapacityGiB      int64
+	VolumeID    string
+	DiskType    string
+	WWN         string
+	Name        string
+	Shareable   bool
+	CapacityGiB int64
 }
 
 // DiskOptions represents parameters to create an EBS volume
 type DiskOptions struct {
 	//PowerVS options
-	Shareable         bool
+	Shareable bool
 	//CapacityGigaBytes float64
-
-	CapacityBytes    int64
-	VolumeType       string
+	CapacityBytes int64
+	VolumeType    string
 }
 
 type Cloud interface {
@@ -78,4 +76,11 @@ type Cloud interface {
 	GetPVMInstanceByID(instanceID string) (instance *PVMInstance, err error)
 	GetImageByID(imageID string) (image *PVMImage, err error)
 	IsAttached(volumeID string, nodeID string) (attached bool, err error)
+}
+
+// MetadataService represents Power VS metadata service.
+type MetadataService interface {
+	GetServiceInstanceId() string
+	GetInstanceRegion() string
+	GetNodeInstanceId() string
 }
