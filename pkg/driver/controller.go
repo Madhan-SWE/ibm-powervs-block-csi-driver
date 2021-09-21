@@ -57,6 +57,13 @@ var (
 // newControllerService creates a new controller service
 // it panics if failed to create the service
 func newControllerService(driverOptions *Options) controllerService {
+	klog.V(4).Infof("[Debug] Retrieving node info from metadata service")
+	metadata, err := cloud.NewMetadataService(cloud.DefaultKubernetesAPIClient)
+	if err != nil {
+		panic(err)
+	}
+	klog.V(4).Infoln(metadata)
+
 	c, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.hostName, driverOptions.debug)
 	if err != nil {
 		panic(err)
