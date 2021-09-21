@@ -57,7 +57,7 @@ var (
 // newControllerService creates a new controller service
 // it panics if failed to create the service
 func newControllerService(driverOptions *Options) controllerService {
-	c, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.debug)
+	c, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.hostName, driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}
@@ -92,7 +92,7 @@ func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVol
 		return nil, status.Error(codes.InvalidArgument, errString)
 	}
 
-	var volumeType  string
+	var volumeType string
 
 	for key, value := range req.GetParameters() {
 		switch strings.ToLower(key) {
@@ -104,7 +104,7 @@ func (d *controllerService) CreateVolume(ctx context.Context, req *csi.CreateVol
 	}
 
 	opts := &cloud.DiskOptions{
-		Shareable:         false,
+		Shareable:     false,
 		CapacityBytes: volSizeBytes,
 		VolumeType:    volumeType,
 	}

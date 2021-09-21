@@ -26,14 +26,14 @@ spec:
         - operator: Exists
       containers:
         - name: powervs-plugin
-          image: quay.io/powercloud/powervs-csi-driver:v0.0.1
-          imagePullPolicy: Always
+          image: quay.io/powercloud/powervs-csi-driver:latest
+          imagePullPolicy: Never
           args:
             # - {all,controller,node} # specify the driver mode
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
             - --v=5
-            - --pvm-cloud-instance-id=7845d372-d4e1-46b8-91fc-41051c984601
+            - --hostname=$(MY_NODE_NAME)
             - --debug
           env:
             - name: CSI_ENDPOINT
@@ -44,6 +44,10 @@ spec:
                   name: ibm-secret
                   key: IBMCLOUD_API_KEY
                   optional: true
+            - name: MY_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/

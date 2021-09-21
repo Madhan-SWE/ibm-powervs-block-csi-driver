@@ -62,7 +62,7 @@ type nodeService struct {
 // newNodeService creates a new node service
 // it panics if failed to create the service
 func newNodeService(driverOptions *Options) nodeService {
-	pvsCloud, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.debug)
+	pvsCloud, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.hostName, driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}
@@ -120,7 +120,7 @@ func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 	}
 
 	wwn, ok := req.PublishContext[WWNKey]
-	if !ok  || wwn == "" {
+	if !ok || wwn == "" {
 		return nil, status.Error(codes.InvalidArgument, "WWN ID is not provided or empty")
 	}
 
@@ -228,7 +228,7 @@ func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	}
 	if mpath {
 		klog.Infof("Deleting the multipath device: %s", dev)
-		if err := fibrechannel.RemoveMultipathDevice(dev); err != nil{
+		if err := fibrechannel.RemoveMultipathDevice(dev); err != nil {
 			return nil, err
 		}
 	}

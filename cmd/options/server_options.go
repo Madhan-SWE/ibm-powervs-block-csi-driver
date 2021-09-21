@@ -32,10 +32,13 @@ type ServerOptions struct {
 	PVMCloudInstanceID string
 	// Debug
 	Debug bool
+	// Host Name of the Node
+	HostName string
 }
 
 func (s *ServerOptions) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&s.Endpoint, "endpoint", driver.DefaultCSIEndpoint, "Endpoint for the CSI driver server")
-	fs.StringVar(&s.PVMCloudInstanceID, "pvm-cloud-instance-id","","ID of the PVM Cloud Instance ID")
-	fs.BoolVar(&s.Debug, "debug",false,"Debug option PowerVS client(Prints API requests and replies)")
+	fs.StringVar(&s.PVMCloudInstanceID, "pvm-cloud-instance-id", "", "ID of the PVM Cloud Instance ID")
+	fs.BoolVar(&s.Debug, "debug", false, "Debug option PowerVS client(Prints API requests and replies)")
+	fs.StringVar(&s.HostName, "hostname", "", "Host Name of the node")
 }

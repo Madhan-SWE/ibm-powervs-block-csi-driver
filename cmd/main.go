@@ -39,6 +39,7 @@ func main() {
 		driver.WithVolumeAttachLimit(options.NodeOptions.VolumeAttachLimit),
 		//driver.WithKubernetesClusterID(options.ControllerOptions.KubernetesClusterID),
 		driver.WithPVMCloudInstanceID(options.ServerOptions.PVMCloudInstanceID),
+		driver.WithHostName(options.ServerOptions.HostName),
 	)
 	if err != nil {
 		klog.Fatalln(err)

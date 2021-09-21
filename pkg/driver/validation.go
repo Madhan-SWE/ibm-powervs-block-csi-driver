@@ -25,10 +25,9 @@ func ValidateDriverOptions(options *Options) error {
 		return fmt.Errorf("Invalid mode: %v", err)
 	}
 
-	if options.pvmCloudInstanceID == ""{
-		return fmt.Errorf("pvm-cloud-instance-id can't be empty")
+	if options.pvmCloudInstanceID == "" && options.hostName == "" {
+		return fmt.Errorf("pvm-cloud-instance-id and host name both can't be empty")
 	}
-
 	return nil
 }
 
