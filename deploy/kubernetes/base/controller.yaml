@@ -26,8 +26,8 @@ spec:
         - operator: Exists
       containers:
         - name: powervs-plugin
-          image: quay.io/powercloud/powervs-csi-driver:latest
-          imagePullPolicy: Never
+          image: quay.io/powercloud/powervs-csi-driver:v0.0.1
+          imagePullPolicy: Always
           args:
             # - {all,controller,node} # specify the driver mode
             - --endpoint=$(CSI_ENDPOINT)

@@ -46,12 +46,11 @@ var (
 
 // Disk represents a EBS volume
 type Disk struct {
-	VolumeID  string
-	DiskType  string
-	WWN       string
-	Name      string
-	Shareable bool
-
+	VolumeID    string
+	DiskType    string
+	WWN         string
+	Name        string
+	Shareable   bool
 	CapacityGiB int64
 }
 

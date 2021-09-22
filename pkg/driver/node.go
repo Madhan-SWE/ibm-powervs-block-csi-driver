@@ -62,7 +62,7 @@ type nodeService struct {
 // newNodeService creates a new node service
 // it panics if failed to create the service
 func newNodeService(driverOptions *Options) nodeService {
-	klog.V(4).Infof("[Debug] Retrieving node info from metadata service")
+	klog.V(4).Infof("retrieving node info from metadata service")
 	metadata, err := cloud.NewMetadataService(cloud.DefaultKubernetesAPIClient)
 	if err != nil {
 		panic(err)
