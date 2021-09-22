@@ -33,7 +33,6 @@ spec:
             - --endpoint=$(CSI_ENDPOINT)
             - --logtostderr
             - --v=5
-            - --hostname=$(MY_NODE_NAME)
             - --debug
           env:
             - name: CSI_ENDPOINT
@@ -48,10 +47,6 @@ spec:
                   name: ibm-secret
                   key: IBMCLOUD_API_KEY
                   optional: true
-            - name: MY_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           volumeMounts:
             - name: socket-dir
               mountPath: /var/lib/csi/sockets/pluginproxy/

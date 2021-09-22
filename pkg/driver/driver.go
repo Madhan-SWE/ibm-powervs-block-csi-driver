@@ -60,8 +60,6 @@ type Options struct {
 	mode                Mode
 	volumeAttachLimit   int64
 	kubernetesClusterID string
-	pvmCloudInstanceID  string
-	hostName            string
 	debug               bool
 }
 
@@ -157,12 +155,6 @@ func WithMode(mode Mode) func(*Options) {
 	}
 }
 
-func WithPVMCloudInstanceID(ID string) func(*Options) {
-	return func(o *Options) {
-		o.pvmCloudInstanceID = ID
-	}
-}
-
 func WithDebug(debug bool) func(*Options) {
 	return func(o *Options) {
 		o.debug = debug
@@ -172,11 +164,5 @@ func WithDebug(debug bool) func(*Options) {
 func WithVolumeAttachLimit(volumeAttachLimit int64) func(*Options) {
 	return func(o *Options) {
 		o.volumeAttachLimit = volumeAttachLimit
-	}
-}
-
-func WithHostName(hostName string) func(*Options) {
-	return func(o *Options) {
-		o.hostName = hostName
 	}
 }

@@ -1,7 +1,6 @@
 package cloud
 
 import (
-	newerrors "errors"
 	"fmt"
 	gohttp "net/http"
 	"os"
@@ -22,7 +21,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/klog/v2"
 )
 
 var _ Cloud = &powerVSCloud{}
@@ -120,11 +118,11 @@ func fetchUserDetails(sess *bxsession.Session, generation int) (*User, error) {
 	return &user, nil
 }
 
-func NewPowerVSCloud(cloudInstanceID string, hostName string, debug bool) (Cloud, error) {
-	return newPowerVSCloud(cloudInstanceID, hostName, debug)
+func NewPowerVSCloud(cloudInstanceID string, debug bool) (Cloud, error) {
+	return newPowerVSCloud(cloudInstanceID, debug)
 }
 
-func newPowerVSCloud(cloudInstanceID string, hostName string, debug bool) (Cloud, error) {
+func newPowerVSCloud(cloudInstanceID string, debug bool) (Cloud, error) {
 	apikey := os.Getenv("IBMCLOUD_API_KEY")
 	bxSess, err := bxsession.New(&bluemix.Config{BluemixAPIKey: apikey})
 	if err != nil {
@@ -147,15 +145,6 @@ func newPowerVSCloud(cloudInstanceID string, hostName string, debug bool) (Cloud
 	}
 
 	resourceClient := ctrlv2.ResourceServiceInstanceV2()
-	klog.Infoln("++++++++++++++ Cloud instance id before: ", cloudInstanceID)
-	if cloudInstanceID == "" {
-		cloudInstanceID, err = getCloudInstanceId(resourceClient, bxSess, user, hostName)
-		if err != nil {
-			return nil, err
-		}
-	}
-	klog.Infoln("++++++++++++++ Cloud instance id after: ", cloudInstanceID)
-
 	in, err := resourceClient.GetInstance(cloudInstanceID)
 	if err != nil {
 		return nil, err
@@ -186,60 +175,12 @@ func newPowerVSCloud(cloudInstanceID string, hostName string, debug bool) (Cloud
 	}, nil
 }
 
-func getCloudInstanceId(resourceClient controllerv2.ResourceServiceInstanceRepository, bxSess *bxsession.Session, user *User, hostName string) (string, error) {
-	klog.Infoln("****************************************************************************************** 0")
-	query := controllerv2.ServiceInstanceQuery{
-		Type: "service_instance",
-	}
-	klog.Infoln("****************************************************************************************** 1")
-	instanceList, err := resourceClient.ListInstances(query)
-	if err != nil {
-		return "", err
-	}
-	klog.Infoln("****************************************************************************************** 2")
-	klog.Infoln("****************************************************************************************** ", hostName)
-	for _, in := range instanceList {
-		if in.Crn.ServiceName == "power-iaas" {
-
-			zone := in.RegionID
-			region, err := getRegion(zone)
-			if err != nil {
-				return "", err
-			}
-
-			piSession, err := ibmpisession.New(bxSess.Config.IAMAccessToken, region, true, TIMEOUT, user.Account, zone)
-			if err != nil {
-				return "", err
-			}
-
-			pvmInstancesClient := instance.NewIBMPIInstanceClient(piSession, in.Guid)
-			res, err := pvmInstancesClient.GetAll(in.Guid, TIMEOUT)
-			if err != nil {
-				return "", err
-			}
-
-			for _, pvmInstance := range res.PvmInstances {
-				if strings.ToLower(*pvmInstance.ServerName) == hostName {
-					klog.Infoln(hostName, "----", strings.ToLower(*pvmInstance.ServerName))
-					klog.Infoln(in.Guid)
-					return in.Guid, nil
-				}
-			}
-		}
-	}
-	klog.Infoln("****************************************************************************************** 4")
-	return "", newerrors.New("Cloud instance ID not found")
-}
-
 func (p *powerVSCloud) GetPVMInstanceByName(name string) (*PVMInstance, error) {
 	in, err := p.pvmInstancesClient.GetAll(p.cloudInstanceID, TIMEOUT)
 	if err != nil {
 		return nil, err
 	}
-	klog.Infoln("************** Host name ****************", name)
-	klog.Infof("************** Host Details **************** %+v", in)
 	for _, pvmInstance := range in.PvmInstances {
-		klog.Infof("************** Host Details **************** %+v", pvmInstance)
 		if name == strings.ToLower(*pvmInstance.ServerName) {
 			return &PVMInstance{
 				ID:      *pvmInstance.PvmInstanceID,

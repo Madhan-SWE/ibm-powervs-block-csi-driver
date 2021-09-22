@@ -36,7 +36,6 @@ spec:
           # - --volume-attach-limit=42
             - --logtostderr
             - --v=5
-            - --hostname=$(MY_NODE_NAME)
             - --debug
           env:
             - name: CSI_ENDPOINT
@@ -50,10 +49,6 @@ spec:
                 secretKeyRef:
                   name: ibm-secret
                   key: IBMCLOUD_API_KEY
-            - name: MY_NODE_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
           volumeMounts:
             - name: kubelet-dir
               mountPath: /var/lib/kubelet

@@ -67,9 +67,8 @@ func newNodeService(driverOptions *Options) nodeService {
 	if err != nil {
 		panic(err)
 	}
-	klog.V(4).Infoln(metadata)
 
-	pvsCloud, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.hostName, driverOptions.debug)
+	pvsCloud, err := NewPowerVSCloudFunc(metadata.GetServiceInstanceId(), driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}

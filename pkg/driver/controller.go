@@ -62,9 +62,8 @@ func newControllerService(driverOptions *Options) controllerService {
 	if err != nil {
 		panic(err)
 	}
-	klog.V(4).Infoln(metadata)
 
-	c, err := NewPowerVSCloudFunc(driverOptions.pvmCloudInstanceID, driverOptions.hostName, driverOptions.debug)
+	c, err := NewPowerVSCloudFunc(metadata.GetServiceInstanceId(), driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}
