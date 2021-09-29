@@ -28,6 +28,13 @@ const (
 	VolumeTypeTier3 = "tier3"
 )
 
+var (
+	ValidVolumeTypes = []string{
+		VolumeTypeTier1,
+		VolumeTypeTier3,
+	}
+)
+
 // Defaults
 const (
 	// DefaultVolumeSize represents the default volume size.
@@ -44,7 +51,7 @@ var (
 	ErrAlreadyExists = errors.New("resource already exists")
 )
 
-// Disk represents a EBS volume
+// Disk represents a PowerVS volume
 type Disk struct {
 	VolumeID    string
 	DiskType    string
@@ -54,7 +61,7 @@ type Disk struct {
 	CapacityGiB int64
 }
 
-// DiskOptions represents parameters to create an EBS volume
+// DiskOptions represents parameters to create an PowerVS volume
 type DiskOptions struct {
 	//PowerVS options
 	Shareable bool

@@ -8,6 +8,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog"
 )
 
@@ -42,6 +43,22 @@ var DefaultKubernetesAPIClient = func() (kubernetes.Interface, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+	return clientset, nil
+}
+
+// Get testing kubernetes APIclient
+var TestingKubernetesAPIClient = func() (kubernetes.Interface, error) {
+	// Get configuration from config file
+	config, err := clientcmd.BuildConfigFromFlags("", "/root/.kube/config")
+	if err != nil {
+		fmt.Println("ERROR building configuration:", err)
+	}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
@@ -65,7 +82,14 @@ func NewMetadataService(k8sAPIClient KubernetesAPIClient) (MetadataService, erro
 
 // Get instance info from kubernetes API
 func KubernetesAPIInstanceInfo(clientset kubernetes.Interface) (*Metadata, error) {
-	nodeName := os.Getenv("CSI_NODE_NAME")
+	var nodeName = os.Getenv("CSI_NODE_NAME")
+	if nodeName == "" {
+		hostName, err := os.Hostname()
+		if err != nil {
+			return nil, err
+		}
+		nodeName = hostName
+	}
 	if nodeName == "" {
 		return nil, fmt.Errorf("CSI_NODE_NAME env var not set")
 	}
@@ -77,23 +101,23 @@ func KubernetesAPIInstanceInfo(clientset kubernetes.Interface) (*Metadata, error
 
 	// Get node labels
 	labels := node.GetLabels()
-	keysList := []string{"serviceInstanceId", "nodeInstanceId", "region"}
+	keysList := []string{"topology.powervs.csi.ibm.com/serviceInstanceId", "topology.powervs.csi.ibm.com/nodeInstanceId", "topology.powervs.csi.ibm.com/region"}
 	instanceInfo := Metadata{}
 	for _, key := range keysList {
 		if val, ok := labels[key]; ok {
 			switch key {
-			case "serviceInstanceId":
+			case "topology.powervs.csi.ibm.com/serviceInstanceId":
 				instanceInfo.serviceInstanceID = val
 				break
-			case "nodeInstanceId":
+			case "topology.powervs.csi.ibm.com/nodeInstanceId":
 				instanceInfo.nodeInstanceId = val
 				break
-			case "region":
+			case "topology.powervs.csi.ibm.com/region":
 				instanceInfo.region = val
 				break
 			}
 		} else {
-			return nil, fmt.Errorf("error getting label %v for node Node %v", key, nodeName)
+			return nil, fmt.Errorf("Error getting label %v for node Node %v", key, nodeName)
 		}
 	}
 

@@ -44,6 +44,10 @@ const (
 const (
 	DriverName  = "powervs.csi.ibm.com"
 	DiskTypeKey = "topology." + DriverName + "/disk-type"
+
+	WellKnownTopologyKey = "topology.kubernetes.io/zone"
+	// DEPRECATED Use the WellKnownTopologyKey instead
+	TopologyKey = "topology." + DriverName + "/zone"
 )
 
 type Driver struct {
@@ -73,7 +77,7 @@ func NewDriver(options ...func(*Options)) (*Driver, error) {
 	for _, option := range options {
 		option(&driverOptions)
 	}
-
+	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	if err := ValidateDriverOptions(&driverOptions); err != nil {
 		return nil, fmt.Errorf("Invalid driver options: %v", err)
 	}

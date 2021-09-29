@@ -27,6 +27,18 @@ const (
 const (
 	// VolumeTypeKey represents key for volume type
 	VolumeTypeKey = "type"
+
+	// IopsPerGBKey represents key for IOPS per GB
+	IopsPerGBKey = "iopspergb"
+
+	// Iops represents key for IOPS for volume
+	IopsKey = "iops"
+
+	// ThroughputKey represents key for throughput
+	ThroughputKey = "throughput"
+
+	// EncryptedKey represents key for whether filesystem is encrypted
+	EncryptedKey = "encrypted"
 )
 
 // constants for default command line flag values
