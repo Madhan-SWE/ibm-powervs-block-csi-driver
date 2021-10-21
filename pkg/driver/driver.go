@@ -77,7 +77,6 @@ func NewDriver(options ...func(*Options)) (*Driver, error) {
 	for _, option := range options {
 		option(&driverOptions)
 	}
-	fmt.Println("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	if err := ValidateDriverOptions(&driverOptions); err != nil {
 		return nil, fmt.Errorf("Invalid driver options: %v", err)
 	}
