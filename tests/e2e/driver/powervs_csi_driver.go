@@ -88,58 +88,5 @@ func GetParameters(volumeType string, fsType string, encrypted bool) map[string]
 		"type":                      volumeType,
 		"csi.storage.k8s.io/fstype": fsType,
 	}
-	if iopsPerGB := IOPSPerGBForVolumeType(volumeType); iopsPerGB != "" {
-		parameters[powervscsidriver.IopsPerGBKey] = iopsPerGB
-	}
-	if iops := IOPSForVolumeType(volumeType); iops != "" {
-		parameters[powervscsidriver.IopsKey] = iops
-	}
-	if throughput := ThroughputForVolumeType(volumeType); throughput != "" {
-		parameters[powervscsidriver.ThroughputKey] = throughput
-	}
-	if encrypted {
-		parameters[powervscsidriver.EncryptedKey] = True
-	}
 	return parameters
-}
-
-// IOPSPerGBForVolumeType returns the maximum iops per GB for each volumeType
-// Otherwise returns an empty string
-func IOPSPerGBForVolumeType(volumeType string) string {
-	switch volumeType {
-	// case "tier1":
-	// 	// Maximum IOPS/GB for io1 is 50
-	// 	return "10"
-	// case "tier3":
-	// 	// Maximum IOPS/GB for io2 is 500
-	// 	return "3"
-	default:
-		return ""
-	}
-}
-
-// IOPSForVolumeType returns the maximum iops for each volumeType
-// Otherwise returns an empty string
-func IOPSForVolumeType(volumeType string) string {
-	switch volumeType {
-	case "gp3":
-		// Maximum IOPS for gp3 is 16000. However, maximum IOPS/GB for gp3 is 500.
-		// Since the tests will run using minimum volume capacity (1GB), set to 500.
-		return "500"
-	default:
-		return ""
-	}
-}
-
-// ThroughputPerVolumeType returns the maximum throughput for each volumeType
-// Otherwise returns an empty string
-func ThroughputForVolumeType(volumeType string) string {
-	switch volumeType {
-	case "gp3":
-		// Maximum throughput for gp3 is 1000. However, maximum throughput/iops for gp3 is 0.25
-		// Since the default iops is 3000, set to 750.
-		return "750"
-	default:
-		return ""
-	}
 }
