@@ -68,7 +68,7 @@ func newNodeService(driverOptions *Options) nodeService {
 		panic(err)
 	}
 
-	pvsCloud, err := NewPowerVSCloudFunc(metadata.GetServiceInstanceId(), driverOptions.debug)
+	pvsCloud, err := NewPowerVSCloudFunc(metadata.GetCloudInstanceId(), driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}
@@ -363,20 +363,34 @@ func (d *nodeService) NodeGetCapabilities(ctx context.Context, req *csi.NodeGetC
 func (d *nodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
 	klog.V(4).Infof("NodeGetInfo: called with args %+v", *req)
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		klog.Errorf("failed to get hostname, err: %s", err)
-		return nil, err
-	}
-	// virtual server instances in the PowerVS doesn't contain the domain names, hence need to be trimmed if exists
-	hostname = strings.Split(hostname, ".")[0]
+	/*
+		hostname, err := os.Hostname()
+		if err != nil {
+			klog.Errorf("failed to get hostname, err: %s", err)
+			return nil, err
+		}
+		// virtual server instances in the PowerVS doesn't contain the domain names, hence need to be trimmed if exists
+		hostname = strings.Split(hostname, ".")[0]
 
-	in, err := d.cloud.GetPVMInstanceByName(hostname)
-	if err != nil {
-		klog.Errorf("failed to get the instance for %s, err: %s", hostname, err)
-		return nil, fmt.Errorf("failed to get the instance for %s, err: %s", hostname, err)
-	}
+		in, err := d.cloud.GetPVMInstanceByName(hostname)
+		if err != nil {
+			klog.Errorf("failed to get the instance for %s, err: %s", hostname, err)
+			return nil, fmt.Errorf("failed to get the instance for %s, err: %s", hostname, err)
+		}
+	*/
 
+	klog.V(4).Infof("retrieving node info from metadata service")
+	metadata, err := cloud.NewMetadataService(cloud.DefaultKubernetesAPIClient)
+	if err != nil {
+		panic(err)
+	}
+	pvmInstanceId := metadata.GetPvmInstanceId()
+
+	in, err := d.cloud.GetPVMInstanceByID(pvmInstanceId)
+	if err != nil {
+		klog.Errorf("failed to get the instance for pvmInstanceId %s, err: %s", pvmInstanceId, err)
+		return nil, fmt.Errorf("failed to get the instance for pvmInstanceId %s, err: %s", pvmInstanceId, err)
+	}
 	image, err := d.cloud.GetImageByID(in.ImageID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get the image details for %s, err: %s", in.ImageID, err)
@@ -389,7 +403,7 @@ func (d *nodeService) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoReque
 	topology := &csi.Topology{Segments: segments}
 
 	return &csi.NodeGetInfoResponse{
-		NodeId:             in.ID,
+		NodeId:             pvmInstanceId,
 		MaxVolumesPerNode:  d.getVolumesLimit(),
 		AccessibleTopology: topology,
 	}, nil

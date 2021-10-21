@@ -77,10 +77,3 @@ type Cloud interface {
 	GetImageByID(imageID string) (image *PVMImage, err error)
 	IsAttached(volumeID string, nodeID string) (attached bool, err error)
 }
-
-// MetadataService represents Power VS metadata service.
-type MetadataService interface {
-	GetServiceInstanceId() string
-	GetInstanceRegion() string
-	GetNodeInstanceId() string
-}

@@ -63,7 +63,7 @@ func newControllerService(driverOptions *Options) controllerService {
 		panic(err)
 	}
 
-	c, err := NewPowerVSCloudFunc(metadata.GetServiceInstanceId(), driverOptions.debug)
+	c, err := NewPowerVSCloudFunc(metadata.GetCloudInstanceId(), driverOptions.debug)
 	if err != nil {
 		panic(err)
 	}
