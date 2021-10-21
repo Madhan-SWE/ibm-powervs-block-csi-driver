@@ -181,7 +181,7 @@ func (p *powerVSCloud) GetPVMInstanceByName(name string) (*PVMInstance, error) {
 		return nil, err
 	}
 	for _, pvmInstance := range in.PvmInstances {
-		if name == strings.ToLower(*pvmInstance.ServerName) {
+		if name == *pvmInstance.ServerName {
 			return &PVMInstance{
 				ID:      *pvmInstance.PvmInstanceID,
 				ImageID: *pvmInstance.ImageID,
