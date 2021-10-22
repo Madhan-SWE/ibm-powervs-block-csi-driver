@@ -29,7 +29,7 @@ spec:
           securityContext:
             privileged: true
           image: quay.io/powercloud/powervs-csi-driver:v0.0.1
-          imagePullPolicy: Always
+          imagePullPolicy: Never
           args:
             - node
             - --endpoint=$(CSI_ENDPOINT)
