@@ -29,9 +29,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
-	"k8s.io/utils/exec"
-        mountutils "k8s.io/mount-utils"
-	"k8s.io/utils/mount"
+	mountutils "k8s.io/mount-utils"
 )
 
 const (
