@@ -150,6 +150,7 @@ func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		msg := fmt.Sprintf("failed to check if target %q exists: %v", target, err)
 		return nil, status.Error(codes.Internal, msg)
 	}
+
 	// When exists is true it means target path was created but device isn't mounted.
 	// We don't want to do anything in that case and let the operation proceed.
 	// Otherwise we need to create the target directory.
@@ -190,6 +191,7 @@ func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 
 func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstageVolumeRequest) (*csi.NodeUnstageVolumeResponse, error) {
 	klog.V(4).Infof("NodeUnstageVolume: called with args %+v", *req)
+	fmt.Printf("Args: %+v", req)
 	volumeID := req.GetVolumeId()
 	if len(volumeID) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
@@ -244,6 +246,7 @@ func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 			return nil, err
 		}
 	}
+
 	return &csi.NodeUnstageVolumeResponse{}, nil
 }
 

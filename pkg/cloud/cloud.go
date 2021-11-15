@@ -44,11 +44,19 @@ const (
 )
 
 var (
+
+	// ErrMultiDisks is an error that is returned when multiple
+	// disks are found with the same volume name.
+	ErrMultiDisks = errors.New("Multiple disks with same name")
+
 	// ErrNotFound is returned when a resource is not found.
 	ErrNotFound = errors.New("resource was not found")
 
 	// ErrAlreadyExists is returned when a resource is already existent.
 	ErrAlreadyExists = errors.New("resource already exists")
+
+	// ErrVolumeInUse is returned when a volume is already attached to an instance.
+	ErrVolumeInUse = errors.New("Request volume is already attached to an instance")
 
 	// ErrIdempotent is returned when another request with same idempotent token is in-flight.
 	ErrIdempotentParameterMismatch = errors.New("Parameters on this idempotent request are inconsistent with parameters used in previous request(s)")

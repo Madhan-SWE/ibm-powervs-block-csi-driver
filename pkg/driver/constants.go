@@ -23,6 +23,20 @@ const (
 	WWNKey = "wwn"
 )
 
+// constants of keys in PublishContext
+const (
+	// devicePathKey represents key for device path in PublishContext
+	// devicePath is the device path where the volume is attached to
+	DevicePathKey = "devicePath"
+)
+
+// constants of keys in VolumeContext
+const (
+	// VolumeAttributePartition represents key for partition config in VolumeContext
+	// this represents the partition number on a device used to mount
+	VolumeAttributePartition = "partition"
+)
+
 // constants of keys in volume parameters
 const (
 	// VolumeTypeKey represents key for volume type

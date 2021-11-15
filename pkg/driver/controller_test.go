@@ -730,6 +730,503 @@ func TestDeleteVolume(t *testing.T) {
 	}
 }
 
+func TestControllerPublishVolume(t *testing.T) {
+	stdVolCap := &csi.VolumeCapability{
+		AccessType: &csi.VolumeCapability_Mount{
+			Mount: &csi.VolumeCapability_MountVolume{},
+		},
+		AccessMode: &csi.VolumeCapability_AccessMode{
+			Mode: csi.VolumeCapability_AccessMode_SINGLE_NODE_WRITER,
+		},
+	}
+	expDevicePath := "/dev/xvda"
+	volumeName := "vol-test"
+
+	testCases := []struct {
+		name     string
+		testFunc func(t *testing.T)
+	}{
+
+		{
+			name: "success normal",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					NodeId:           expInstanceID,
+					VolumeCapability: stdVolCap,
+					VolumeId:         volumeName,
+				}
+				expResp := &csi.ControllerPublishVolumeResponse{
+					PublishContext: map[string]string{WWNKey: expDevicePath},
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetPVMInstanceByID(gomock.Eq(expInstanceID)).Return(nil, nil)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq(volumeName)).Return(&cloud.Disk{WWN: expDevicePath}, nil)
+				mockCloud.EXPECT().IsAttached(gomock.Eq(volumeName), gomock.Eq(expInstanceID)).Return(false, nil)
+				mockCloud.EXPECT().AttachDisk(gomock.Eq(volumeName), gomock.Eq(expInstanceID)).Return(nil)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				resp, err := powervsDriver.ControllerPublishVolume(ctx, req)
+				if err != nil {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+
+				if !reflect.DeepEqual(resp, expResp) {
+					t.Fatalf("Expected resp to be %+v, got: %+v", expResp, resp)
+				}
+			},
+		},
+
+		{
+			name: "fail no VolumeId",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+
+		{
+			name: "fail no NodeId",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					VolumeId: "vol-test",
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+
+		{
+			name: "fail no VolumeCapability",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					NodeId:   expInstanceID,
+					VolumeId: "vol-test",
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+
+		{
+			name: "fail invalid VolumeCapability",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					NodeId: expInstanceID,
+					VolumeCapability: &csi.VolumeCapability{
+						AccessMode: &csi.VolumeCapability_AccessMode{
+							Mode: csi.VolumeCapability_AccessMode_UNKNOWN,
+						},
+					},
+					VolumeId: "vol-test",
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+
+		{
+			name: "fail instance not found",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					NodeId:           "does-not-exist",
+					VolumeId:         "vol-test",
+					VolumeCapability: stdVolCap,
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetPVMInstanceByID(gomock.Eq("does-not-exist")).Return(nil, cloud.ErrNotFound)
+				// mockCloud.EXPECT().IsExistInstance(gomock.Eq(ctx), gomock.Eq(req.NodeId)).Return(false)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.NotFound {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.NotFound, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.NotFound)
+				}
+			},
+		},
+
+		{
+			name: "fail volume not found",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerPublishVolumeRequest{
+					VolumeId:         "does-not-exist",
+					NodeId:           expInstanceID,
+					VolumeCapability: stdVolCap,
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetPVMInstanceByID(gomock.Eq(expInstanceID)).Return(nil, nil)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq("does-not-exist")).Return(&cloud.Disk{}, cloud.ErrNotFound)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerPublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.NotFound {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.NotFound, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.NotFound)
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, tc.testFunc)
+	}
+}
+
+func TestControllerUnpublishVolume(t *testing.T) {
+	expDevicePath := "/dev/xvda"
+	testCases := []struct {
+		name     string
+		testFunc func(t *testing.T)
+	}{
+		{
+			name: "success normal",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerUnpublishVolumeRequest{
+					NodeId:   expInstanceID,
+					VolumeId: "vol-test",
+				}
+				expResp := &csi.ControllerUnpublishVolumeResponse{}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq("vol-test")).Return(&cloud.Disk{WWN: expDevicePath}, nil)
+				mockCloud.EXPECT().IsAttached(gomock.Eq("vol-test"), gomock.Eq(expInstanceID)).Return(true, nil)
+				mockCloud.EXPECT().DetachDisk(req.VolumeId, req.NodeId).Return(nil)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				resp, err := powervsDriver.ControllerUnpublishVolume(ctx, req)
+				if err != nil {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+
+				if !reflect.DeepEqual(resp, expResp) {
+					t.Fatalf("Expected resp to be %+v, got: %+v", expResp, resp)
+				}
+			},
+		},
+		{
+			name: "success when resource is not found",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerUnpublishVolumeRequest{
+					NodeId:   expInstanceID,
+					VolumeId: "vol-test",
+				}
+				expResp := &csi.ControllerUnpublishVolumeResponse{}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+				mockCloud.EXPECT().GetDiskByID(gomock.Eq("vol-test")).Return(&cloud.Disk{WWN: expDevicePath}, cloud.ErrNotFound)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+				resp, err := powervsDriver.ControllerUnpublishVolume(ctx, req)
+				if err != nil {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+
+				if !reflect.DeepEqual(resp, expResp) {
+					t.Fatalf("Expected resp to be %+v, got: %+v", expResp, resp)
+				}
+			},
+		},
+
+		{
+			name: "fail no VolumeId",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerUnpublishVolumeRequest{}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerUnpublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+		{
+			name: "fail no NodeId",
+			testFunc: func(t *testing.T) {
+				req := &csi.ControllerUnpublishVolumeRequest{
+					VolumeId: "vol-test",
+				}
+
+				ctx := context.Background()
+
+				mockCtl := gomock.NewController(t)
+				defer mockCtl.Finish()
+
+				mockCloud := mocks.NewMockCloud(mockCtl)
+
+				powervsDriver := controllerService{
+					cloud:         mockCloud,
+					driverOptions: &Options{},
+				}
+
+				if _, err := powervsDriver.ControllerUnpublishVolume(ctx, req); err != nil {
+					srvErr, ok := status.FromError(err)
+					if !ok {
+						t.Fatalf("Could not get error status code from error: %v", srvErr)
+					}
+					if srvErr.Code() != codes.InvalidArgument {
+						t.Fatalf("Expected error code %d, got %d message %s", codes.InvalidArgument, srvErr.Code(), srvErr.Message())
+					}
+				} else {
+					t.Fatalf("Expected error %v, got no error", codes.InvalidArgument)
+				}
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, tc.testFunc)
+	}
+}
+
+func TestControllerExpandVolume(t *testing.T) {
+	testCases := []struct {
+		name     string
+		req      *csi.ControllerExpandVolumeRequest
+		newSize  int64
+		expResp  *csi.ControllerExpandVolumeResponse
+		expError bool
+	}{
+		{
+			name: "success normal",
+			req: &csi.ControllerExpandVolumeRequest{
+				VolumeId: "vol-test",
+				CapacityRange: &csi.CapacityRange{
+					RequiredBytes: 5 * util.GiB,
+				},
+			},
+			expResp: &csi.ControllerExpandVolumeResponse{
+				CapacityBytes: 5 * util.GiB,
+			},
+		},
+		{
+			name:     "fail empty request",
+			req:      &csi.ControllerExpandVolumeRequest{},
+			expError: true,
+		},
+		{
+			name: "fail exceeds limit after round up",
+			req: &csi.ControllerExpandVolumeRequest{
+				VolumeId: "vol-test",
+				CapacityRange: &csi.CapacityRange{
+					RequiredBytes: 5*util.GiB + 1, // should round up to 6 GiB
+					LimitBytes:    5 * util.GiB,
+				},
+			},
+			expError: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+			mockCtl := gomock.NewController(t)
+			defer mockCtl.Finish()
+
+			var retSizeGiB int64
+			if tc.newSize != 0 {
+				retSizeGiB = tc.newSize
+			} else {
+				retSizeGiB = util.BytesToGiB(tc.req.CapacityRange.GetRequiredBytes())
+			}
+
+			mockCloud := mocks.NewMockCloud(mockCtl)
+			mockCloud.EXPECT().ResizeDisk(gomock.Eq(tc.req.VolumeId), gomock.Any()).Return(retSizeGiB, nil).AnyTimes()
+
+			powervsDriver := controllerService{
+				cloud:         mockCloud,
+				driverOptions: &Options{},
+			}
+
+			resp, err := powervsDriver.ControllerExpandVolume(ctx, tc.req)
+			if err != nil {
+				srvErr, ok := status.FromError(err)
+				if !ok {
+					t.Fatalf("Could not get error status code from error: %v", srvErr)
+				}
+				if !tc.expError {
+					t.Fatalf("Unexpected error: %v", err)
+				}
+			} else {
+				if tc.expError {
+					t.Fatalf("Expected error from ControllerExpandVolume, got nothing")
+				}
+			}
+
+			sizeGiB := util.BytesToGiB(resp.GetCapacityBytes())
+			expSizeGiB := util.BytesToGiB(tc.expResp.GetCapacityBytes())
+			if sizeGiB != expSizeGiB {
+				t.Fatalf("Expected size %d GiB, got %d GiB", expSizeGiB, sizeGiB)
+			}
+		})
+	}
+}
+
 func checkExpectedErrorCode(t *testing.T, err error, expectedCode codes.Code) {
 	if err == nil {
 		t.Fatalf("Expected operation to fail but got no error")
