@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
         - name: powervs-plugin
-          image: rcmadhankumar/powervs-csi-driver:latest2
+          image: rcmadhankumar/powervs-csi-driver:latest
           imagePullPolicy: Always
 ---
 kind: Deployment
@@ -25,5 +25,5 @@ spec:
     spec:
       containers:
         - name: powervs-plugin
-          image: rcmadhankumar/powervs-csi-driver:latest2
+          image: rcmadhankumar/powervs-csi-driver:latest
           imagePullPolicy: Always
