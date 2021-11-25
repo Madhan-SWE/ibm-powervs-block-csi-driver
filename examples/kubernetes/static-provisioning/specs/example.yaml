@@ -10,22 +10,14 @@ spec:
     - ReadWriteOnce
   storageClassName: ""
   csi:
-    driver: ebs.csi.aws.com
+    driver: powervs.csi.ibm.com
     volumeHandle: vol-05786ec9ec9526b67
     fsType: xfs
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: topology.ebs.csi.aws.com/zone
-              operator: In
-              values:
-                - us-east-1c
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ebs-claim
+  name: powervs-claim
 spec:
   accessModes:
     - ReadWriteOnce
@@ -51,4 +43,4 @@ spec:
   volumes:
     - name: persistent-storage
       persistentVolumeClaim:
-        claimName: ebs-claim
+        claimName: powervs-claim

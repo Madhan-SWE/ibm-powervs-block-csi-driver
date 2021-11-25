@@ -1,11 +1,11 @@
 # Dynamic Volume Provisioning
-This example shows how to create a EBS volume and consume it from container dynamically.
+This example shows how to create a PowerVS volume and consume it from container dynamically.
 
 ## Prerequisites
 
 1. Kubernetes 1.13+ (CSI 1.0).
 
-2. The [aws-ebs-csi-driver](https://github.com/kubernetes-sigs/aws-ebs-csi-driver) is installed.
+2. The [powervs-ebs-csi-driver](https://github.com/ppc64le-cloud/powervs-csi-driver) is installed.
 
 ## Usage
 
@@ -14,7 +14,7 @@ This example shows how to create a EBS volume and consume it from container dyna
 kubectl apply -f specs/
 ```
 
-2. Validate the volume was created and `volumeHandle` contains an EBS volumeID:
+2. Validate the volume was created and `volumeHandle` contains an PowerVS volumeID:
 ```
 kubectl describe pv
 ```

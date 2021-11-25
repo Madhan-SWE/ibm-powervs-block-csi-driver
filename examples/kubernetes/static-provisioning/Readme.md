@@ -19,16 +19,7 @@ spec:
     driver: powervs.csi.aws.com
     volumeHandle: {volumeId} 
     fsType: xfs
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-      - matchExpressions:
-        - key: topology.ebs.csi.aws.com/zone
-          operator: In
-          values:
-          - us-east-1c 
 ```
-Note that node affinity is used here since PowerVS volume is created in us-east-1c, hence only node in the same AZ can consume this persistent volume.
 
 2. Deploy the example:
 ```sh
