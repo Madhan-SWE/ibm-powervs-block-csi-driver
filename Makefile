@@ -54,3 +54,33 @@ push:
 .PHONY: clean
 clean:
 	rm -rf bin/*
+
+bin/mockgen: | bin
+	go install github.com/golang/mock/mockgen@v1.6.0
+
+bin/golangci-lint: | bin
+	echo "Installing golangci-lint..."
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.43.0
+
+mockgen: bin/mockgen
+	./hack/update-gomock
+
+.PHONY: verify
+verify: bin/golangci-lint
+	echo "verifying and linting files ..."
+	./hack/verify-all
+	echo "Congratulations! All Go source files have been linted."
+
+
+.PHONY: test-e2e
+test-e2e:
+	TEST_PATH=./tests/e2e/... \
+	GINKGO_FOCUS="\[ebs-csi-e2e\]" \
+	./hack/e2e/run.sh
+
+.PHONY: verify-vendor
+test: verify-vendor
+verify: verify-vendor
+verify-vendor:
+	@ echo; echo "### $@:"
+	@ ./hack/verify-vendor.sh

@@ -51,9 +51,9 @@ func GetOptions(fs *flag.FlagSet) *Options {
 		args = os.Args[1:]
 		mode = driver.AllMode
 
-		serverOptions     = options.ServerOptions{}
+		serverOptions = options.ServerOptions{}
 		//controllerOptions = options.ControllerOptions{}
-		nodeOptions       = options.NodeOptions{}
+		nodeOptions = options.NodeOptions{}
 	)
 
 	serverOptions.AddFlags(fs)
@@ -105,8 +105,8 @@ func GetOptions(fs *flag.FlagSet) *Options {
 	return &Options{
 		DriverMode: mode,
 
-		ServerOptions:     &serverOptions,
+		ServerOptions: &serverOptions,
 		//ControllerOptions: &controllerOptions,
-		NodeOptions:       &nodeOptions,
+		NodeOptions: &nodeOptions,
 	}
 }
