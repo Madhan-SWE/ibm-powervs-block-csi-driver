@@ -89,7 +89,6 @@ type fakeCloudProvider struct {
 
 type fakeDisk struct {
 	*cloud.Disk
-	tags map[string]string
 }
 
 func newFakeCloudProvider() *fakeCloudProvider {

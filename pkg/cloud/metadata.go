@@ -108,13 +108,10 @@ func KubernetesAPIInstanceInfo(clientset kubernetes.Interface) (*Metadata, error
 			switch key {
 			case "topology.powervs.csi.ibm.com/serviceInstanceId":
 				instanceInfo.serviceInstanceID = val
-				break
 			case "topology.powervs.csi.ibm.com/nodeInstanceId":
 				instanceInfo.nodeInstanceId = val
-				break
 			case "topology.powervs.csi.ibm.com/region":
 				instanceInfo.region = val
-				break
 			}
 		} else {
 			return nil, fmt.Errorf("Error getting label %v for node Node %v", key, nodeName)

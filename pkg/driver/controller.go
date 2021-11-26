@@ -191,6 +191,9 @@ func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *cs
 	pvInfo := map[string]string{WWNKey: disk.WWN}
 
 	attached, err := d.cloud.IsAttached(volumeID, nodeID)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "Could not attach volume %q to node %q: %v", volumeID, nodeID, err)
+	}
 	if attached {
 		klog.V(5).Infof("ControllerPublishVolume: volume %s already attached to node %s, returning success", volumeID, nodeID)
 		return &csi.ControllerPublishVolumeResponse{PublishContext: pvInfo}, nil

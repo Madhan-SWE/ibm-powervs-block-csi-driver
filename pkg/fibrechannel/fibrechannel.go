@@ -41,7 +41,6 @@ type Connector struct {
 	TargetWWNs []string
 	Lun        string
 	WWIDs      []string
-	io         ioHandler
 }
 
 //OSioHandler is a wrapper that includes all the necessary io functions used for (Should be used as default io handler)
@@ -112,7 +111,10 @@ func scsiHostRescan(io ioHandler) {
 		for _, f := range dirs {
 			name := scsiPath + f.Name() + "/scan"
 			data := []byte("- - -")
-			io.WriteFile(name, data, 0666)
+			err := io.WriteFile(name, data, 0666)
+			if err != nil {
+				glog.Errorf("scsiHostRescan failed: err: %+v", err)
+			}
 		}
 	}
 }
@@ -143,7 +145,7 @@ func searchDisk(c Connector, io ioHandler) (string, error) {
 	// two-phase search:
 	// first phase, search existing device path, if a multipath dm is found, exit loop
 	// otherwise, in second phase, rescan scsi bus and search again, return with any findings
-	for true {
+	for {
 
 		for _, diskID := range diskIds {
 			if len(c.TargetWWNs) != 0 {
@@ -327,7 +329,10 @@ func removeFromScsiSubsystem(deviceName string, io ioHandler) {
 	fileName := "/sys/block/" + deviceName + "/device/delete"
 	glog.Infof("fc: remove device from scsi-subsystem: path: %s", fileName)
 	data := []byte("1")
-	io.WriteFile(fileName, data, 0666)
+	err := io.WriteFile(fileName, data, 0666)
+	if err != nil {
+		glog.Errorf("removeFromScsiSubsystem failed: err: %+v", err)
+	}
 }
 
 func RemoveMultipathDevice(device string) error {

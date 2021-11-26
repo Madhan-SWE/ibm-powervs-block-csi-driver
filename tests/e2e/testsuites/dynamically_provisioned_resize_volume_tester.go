@@ -33,6 +33,9 @@ func (t *DynamicallyProvisionedResizeVolumeTest) Run(client clientset.Interface,
 
 	pvcName := tpvc.persistentVolumeClaim.Name
 	pvc, err := client.CoreV1().PersistentVolumeClaims(namespace.Name).Get(context.TODO(), pvcName, metav1.GetOptions{})
+	if err != nil {
+		framework.ExpectNoError(err, fmt.Sprintf("fail to resize pvc(%s): %v", pvcName, err))
+	}
 	By(fmt.Sprintf("Get pvc name: %v", pvc.Name))
 	originalSize := pvc.Spec.Resources.Requests["storage"]
 	delta := resource.Quantity{}

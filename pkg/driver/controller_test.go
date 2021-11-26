@@ -29,7 +29,6 @@ import (
 )
 
 const (
-	expZone       = "us-west-2b"
 	expInstanceID = "i-123456789abcdef01"
 )
 

@@ -23,6 +23,7 @@ GOPROXY=direct
 GOPATH=$(shell go env GOPATH)
 GOOS=$(shell go env GOOS)
 GOBIN=$(shell pwd)/bin
+PATH=$(shell go env GOBIN):$${PATH}
 PLATFORM=linux/ppc64le
 
 .EXPORT_ALL_VARIABLES:
@@ -54,7 +55,8 @@ push:
 .PHONY: clean
 clean:
 	rm -rf bin/*
-
+bin:
+	@mkdir -p $@
 bin/mockgen: | bin
 	go install github.com/golang/mock/mockgen@v1.6.0
 
@@ -77,10 +79,3 @@ test-e2e:
 	TEST_PATH=./tests/e2e/... \
 	GINKGO_FOCUS="\[ebs-csi-e2e\]" \
 	./hack/e2e/run.sh
-
-.PHONY: verify-vendor
-test: verify-vendor
-verify: verify-vendor
-verify-vendor:
-	@ echo; echo "### $@:"
-	@ ./hack/verify-vendor.sh

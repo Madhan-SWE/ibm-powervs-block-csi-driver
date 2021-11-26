@@ -18,7 +18,6 @@ import (
 const (
 	defaultDiskSize   = 4
 	defaultVolumeType = powervscloud.VolumeTypeTier3
-	dummyVolumeName   = "pre-provisioned"
 	debug             = false
 	apiKeyEnv         = "IBMCLOUD_API_KEY"
 )

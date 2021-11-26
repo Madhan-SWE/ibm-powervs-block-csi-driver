@@ -34,8 +34,6 @@ import (
 
 var (
 	volumeID = "voltest"
-	nvmeName = "/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_voltest"
-	// symlinkFileInfo = fs.FileInfo(&fakeFileInfo{nvmeName, os.ModeSymlink})
 )
 
 func TestNodeStageVolume(t *testing.T) {
@@ -43,8 +41,6 @@ func TestNodeStageVolume(t *testing.T) {
 	var (
 		targetPath = "/test/path"
 		devicePath = "/dev/fake"
-		// source     = "source"
-		// nvmeDevicePath = "/dev/fakenvme1n1"
 
 		stdVolCap = &csi.VolumeCapability{
 			AccessType: &csi.VolumeCapability_Mount{
