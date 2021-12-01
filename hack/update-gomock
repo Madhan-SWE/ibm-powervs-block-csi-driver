@@ -16,6 +16,6 @@
 
 set -euo pipefail
 
-mockgen -package mocks -destination=pkg/cloud/mocks/mock_cloud.go -source ./pkg/cloud/cloud_interface.go
-mockgen -package mocks -destination=pkg/fibrechannel/mocks/mock_iohandler.go -source ./pkg/fibrechannel/fibrechannel.go
-mockgen -package mocks -destination=pkg/driver/mocks/mock_mounter.go -source ./pkg/driver/mount.go
+bin/mockgen -package mocks -destination=pkg/cloud/mocks/mock_cloud.go -source ./pkg/cloud/cloud_interface.go
+bin/mockgen -package mocks -destination=pkg/fibrechannel/mocks/mock_iohandler.go -source ./pkg/fibrechannel/fibrechannel.go
+bin/mockgen -package mocks -destination=pkg/driver/mocks/mock_mounter.go -source ./pkg/driver/mount.go

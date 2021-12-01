@@ -23,7 +23,6 @@ GOPROXY=direct
 GOPATH=$(shell go env GOPATH)
 GOOS=$(shell go env GOOS)
 GOBIN=$(shell pwd)/bin
-PATH=$(shell go env GOBIN):$${PATH}
 PLATFORM=linux/ppc64le
 
 .EXPORT_ALL_VARIABLES:
@@ -77,5 +76,12 @@ verify: bin/golangci-lint
 .PHONY: test-e2e
 test-e2e:
 	TEST_PATH=./tests/e2e/... \
-	GINKGO_FOCUS="\[ebs-csi-e2e\]" \
+	GINKGO_FOCUS="\[powervs-csi-e2e\]" \
 	./hack/e2e/run.sh
+
+.PHONY: verify-vendor
+test: verify-vendor
+verify: verify-vendor
+verify-vendor:
+	@ echo; echo "### $@:"
+	@ ./hack/verify-vendor.sh

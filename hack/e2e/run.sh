@@ -16,11 +16,17 @@
 
 set -euo pipefail
 
+BASE_DIR=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+source "${BASE_DIR}"/util.sh
+
+TEST_DIR=${BASE_DIR}/csi-test-artifacts
+BIN_DIR=${TEST_DIR}/bin
+
 TEST_PATH=${TEST_PATH:-"./tests/e2e/..."}
 ARTIFACTS=${ARTIFACTS:-"${TEST_DIR}/artifacts"}
-GINKGO_FOCUS=${GINKGO_FOCUS:-"\[ebs-csi-e2e\]"}
+GINKGO_FOCUS=${GINKGO_FOCUS:-"\[powervs-csi-e2e\]"}
 GINKGO_SKIP=${GINKGO_SKIP:-"\[Disruptive\]"}
-GINKGO_NODES=${GINKGO_NODES:-4}
+GINKGO_NODES=${GINKGO_NODES:-1}
 TEST_EXTRA_FLAGS=${TEST_EXTRA_FLAGS:-}
 
 
@@ -36,7 +42,7 @@ loudecho "Testing focus ${GINKGO_FOCUS}"
 eval "EXPANDED_TEST_EXTRA_FLAGS=$TEST_EXTRA_FLAGS"
 set -x
 set +e
-${GINKGO_BIN} -p -nodes="${GINKGO_NODES}" -v --focus="${GINKGO_FOCUS}" --skip="${GINKGO_SKIP}" "${TEST_PATH}" -- -kubeconfig="${KUBECONFIG}" -report-dir="${ARTIFACTS}" "${EXPANDED_TEST_EXTRA_FLAGS}"
+${GINKGO_BIN} -p -nodes="${GINKGO_NODES}" -v --focus="${GINKGO_FOCUS}" --skip="${GINKGO_SKIP}" "${TEST_PATH}" -report-dir="${ARTIFACTS}" "${EXPANDED_TEST_EXTRA_FLAGS}"
 TEST_PASSED=$?
 set -e
 set +x
