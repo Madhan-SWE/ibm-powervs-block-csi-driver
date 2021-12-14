@@ -26,6 +26,7 @@ import (
 	"github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/cloud"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/fibrechannel"
+	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"k8s.io/klog/v2"
@@ -131,11 +132,14 @@ func (d *nodeService) NodeStageVolume(ctx context.Context, req *csi.NodeStageVol
 		}
 	}
 
+        klog.V(4).Infof("NodeStageVolume: wwnkey: %s, req.PublishContext: %+v", WWNKey, req.PublishContext)
 	wwn, ok := req.PublishContext[WWNKey]
 	if !ok || wwn == "" {
 		return nil, status.Error(codes.InvalidArgument, "WWN ID is not provided or empty")
 	}
 
+	// _ = d.mounter.RescanSCSIBus()
+        klog.V(4).Infof("NodeStageVolume: Get device path for wwn: %s", wwn)
 	source, err := d.mounter.GetDevicePath(wwn)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "Failed to find device path %s. %v", wwn, err)
@@ -240,7 +244,7 @@ func (d *nodeService) NodeUnstageVolume(ctx context.Context, req *csi.NodeUnstag
 	}
 	if mpath {
 		klog.Infof("Deleting the multipath device: %s", dev)
-		if err := fibrechannel.RemoveMultipathDevice(dev); err != nil {
+		if err := util.RemoveMultipathDevice(dev); err != nil {
 			return nil, err
 		}
 	}

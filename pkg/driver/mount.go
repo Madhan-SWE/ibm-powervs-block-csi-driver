@@ -69,7 +69,7 @@ func (m *NodeMounter) GetDevicePath(wwn string) (devicePath string, err error) {
 	c := fibrechannel.Connector{}
 	// Prepending the 3 which is missing in the wwn getting it from the PowerVS infra
 	c.WWIDs = []string{"3" + wwn}
-
+        klog.V(5).Infof("GetDevicePath: c.WWIDs : %+v", c.WWIDs)
 	return fibrechannel.Attach(c, &fibrechannel.OSioHandler{})
 }
 

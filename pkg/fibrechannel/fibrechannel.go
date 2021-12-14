@@ -228,6 +228,7 @@ func findDiskWWIDs(wwid string, io ioHandler) (string, string) {
 					glog.Errorf("fc: failed to find a multipath disk for %s, error %v", disk, err)
 					return disk, ""
 				}
+				glog.Infof(" = = = = = = = = = =  = = = = Disk : %+v dm: %+v", disk, dm)
 				return disk, dm
 			}
 		}

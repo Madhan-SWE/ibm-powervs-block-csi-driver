@@ -22,11 +22,13 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+        "os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
+        "k8s.io/klog/v2"
 )
 
 const (
@@ -91,4 +93,14 @@ func GetAccessModes(caps []*csi.VolumeCapability) *[]string {
 		modes = append(modes, c.AccessMode.GetMode().String())
 	}
 	return &modes
+}
+
+func RemoveMultipathDevice(device string) error {
+	cmd := exec.Command("multipath", "-f", device)
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("failed remove multipath device: %s err: %v", device, err)
+	}
+	klog.Infof("output of multipath device remove command: %s", stdoutStderr)
+	return nil
 }

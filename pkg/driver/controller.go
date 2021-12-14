@@ -19,7 +19,6 @@ package driver
 import (
 	"context"
 	"strings"
-
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/cloud"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/util"
@@ -179,8 +178,8 @@ func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *cs
 		return nil, status.Errorf(codes.NotFound, "Instance %q not found, err: %v", nodeID, err)
 	}
 
-	disk, err := d.cloud.GetDiskByID(volumeID)
-
+        disk, err := d.cloud.GetDiskByID(volumeID)
+        klog.V(5).Infof("ControllerPublishVolume: disk details/%s : %+v", volumeID, disk)
 	if err != nil {
 		if err == cloud.ErrNotFound {
 			return nil, status.Error(codes.NotFound, "Volume not found")
@@ -189,11 +188,12 @@ func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *cs
 	}
 
 	pvInfo := map[string]string{WWNKey: disk.WWN}
-
+        klog.V(5).Infof("ControllerPublishVolume: pvInfo: %+v", pvInfo)
 	attached, err := d.cloud.IsAttached(volumeID, nodeID)
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Could not attach volume %q to node %q: %v", volumeID, nodeID, err)
+		klog.V(5).Infof("Volume %q not already attached to node %q: %v", volumeID, nodeID, err)
 	}
+
 	if attached {
 		klog.V(5).Infof("ControllerPublishVolume: volume %s already attached to node %s, returning success", volumeID, nodeID)
 		return &csi.ControllerPublishVolumeResponse{PublishContext: pvInfo}, nil
@@ -206,8 +206,9 @@ func (d *controllerService) ControllerPublishVolume(ctx context.Context, req *cs
 		}
 		return nil, status.Errorf(codes.Internal, "Could not attach volume %q to node %q: %v", volumeID, nodeID, err)
 	}
-	klog.V(5).Infof("ControllerPublishVolume: volume %s attached to node %s", volumeID, nodeID)
 
+	klog.V(5).Infof("ControllerPublishVolume: volume %s attached to node %s", volumeID, nodeID)
+        klog.V(5).Infof("ControllerPublishVolume: Response: %+v", csi.ControllerPublishVolumeResponse{PublishContext: pvInfo})
 	return &csi.ControllerPublishVolumeResponse{PublishContext: pvInfo}, nil
 }
 

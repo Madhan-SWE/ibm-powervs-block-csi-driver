@@ -21,6 +21,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/util"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/klog/v2"
 )
 
 var _ Cloud = &powerVSCloud{}
@@ -235,6 +236,11 @@ func (p *powerVSCloud) CreateDisk(volumeName string, diskOptions *DiskOptions) (
 		return nil, err
 	}
 
+        err = p.WaitForAttachmentState(*v.VolumeID, VolumeAvailableState)
+        if err != nil {
+                return nil, err
+        }
+
 	return &Disk{CapacityGiB: capacityGiB, VolumeID: *v.VolumeID, DiskType: v.DiskType, WWN: strings.ToLower(v.Wwn)}, nil
 }
 
@@ -248,12 +254,16 @@ func (p *powerVSCloud) DeleteDisk(volumeID string) (success bool, err error) {
 }
 
 func (p *powerVSCloud) AttachDisk(volumeID string, nodeID string) (err error) {
+	klog.Infof("AttachDisk : vol id  %s , node id %s", volumeID, nodeID)
 	_, err = p.volClient.Attach(nodeID, volumeID, p.cloudInstanceID, TIMEOUT)
+	klog.Infof("Attach error: %+v", err)
 	if err != nil {
 		return err
 	}
-
+       
+	klog.Infof("Wait for attachment state: ")
 	err = p.WaitForAttachmentState(volumeID, VolumeInUseState)
+	klog.Infof("Wait for attachment state: err: %+v ", err)
 	if err != nil {
 		return err
 	}
@@ -333,6 +343,7 @@ func (p *powerVSCloud) GetDiskByName(name string) (disk *Disk, err error) {
 
 func (p *powerVSCloud) GetDiskByID(volumeID string) (disk *Disk, err error) {
 	v, err := p.volClient.Get(volumeID, p.cloudInstanceID, TIMEOUT)
+	klog.Infof("Volume details: %+v", v)
 	if err != nil {
 		if strings.Contains(err.Error(), "Resource not found") {
 			return nil, ErrNotFound

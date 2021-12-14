@@ -13,8 +13,8 @@
 # limitations under the License.
 
 PKG=github.com/ppc64le-cloud/powervs-csi-driver
-IMAGE?=quay.io/powercloud/powervs-csi-driver
-VERSION=v0.0.1
+IMAGE?=rcmadhankumar/powervs-csi-driver
+VERSION=fibre
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 LDFLAGS?="-X ${PKG}/pkg/driver.driverVersion=${VERSION} -X ${PKG}/pkg/driver.gitCommit=${GIT_COMMIT} -X ${PKG}/pkg/driver.buildDate=${BUILD_DATE} -s -w"
@@ -41,7 +41,7 @@ image-release:
 
 .PHONY: image
 image:
-	docker build -t $(IMAGE):latest . --target debian-base
+	docker build -t $(IMAGE):$(VERSION) . --target debian-base
 
 .PHONY: push-release
 push-release:
@@ -49,7 +49,7 @@ push-release:
 
 .PHONY: push
 push:
-	docker push $(IMAGE):latest
+	docker push $(IMAGE):$(VERSION)
 
 .PHONY: clean
 clean:
