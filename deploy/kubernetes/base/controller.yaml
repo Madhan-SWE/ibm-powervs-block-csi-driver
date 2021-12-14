@@ -26,7 +26,7 @@ spec:
         - operator: Exists
       containers:
         - name: powervs-plugin
-          image: quay.io/powercloud/powervs-csi-driver:v0.0.1
+          image: rcmadhankumar/powervs-csi-driver:standard
           imagePullPolicy: Always
           args:
             # - {all,controller,node} # specify the driver mode
@@ -69,6 +69,7 @@ spec:
             - --v=5
             - --feature-gates=Topology=true
             - --leader-election
+            - --timeout=120s
             #- --leader-election-type=leases
           env:
             - name: ADDRESS

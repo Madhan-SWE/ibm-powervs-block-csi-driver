@@ -10,7 +10,7 @@ spec:
     spec:
       containers:
         - name: powervs-plugin
-          image: quay.io/powercloud/powervs-csi-driver:dev
+          image: rcmadhankumar/powervs-csi-driver:fibre
           imagePullPolicy: Always
 ---
 kind: Deployment
@@ -25,5 +25,5 @@ spec:
     spec:
       containers:
         - name: powervs-plugin
-          image: quay.io/powercloud/powervs-csi-driver:dev
+          image: rcmadhankumar/powervs-csi-driver:fibre
           imagePullPolicy: Always
