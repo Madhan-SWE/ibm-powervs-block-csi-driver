@@ -27,7 +27,7 @@ import (
 )
 
 func main() {
-	fs := flag.NewFlagSet("powervs-csi-driver", flag.ExitOnError)
+	fs := flag.NewFlagSet("ibm-powervs-block-csi-driver", flag.ExitOnError)
 	options := GetOptions(fs)
 
 	drv, err := driver.NewDriver(
