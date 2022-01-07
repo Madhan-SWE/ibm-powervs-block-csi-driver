@@ -48,12 +48,14 @@ func TestSanity(t *testing.T) {
 		controllerService: controllerService{
 			cloud:         newFakeCloudProvider(),
 			driverOptions: driverOptions,
+			volumeLocks:   util.NewVolumeLocks(),
 		},
 		nodeService: nodeService{
 			mounter:       newFakeMounter(),
 			cloud:         newFakeCloudProvider(),
 			driverOptions: &Options{},
 			pvmInstanceId: "test1234",
+			volumeLocks:   util.NewVolumeLocks(),
 		},
 	}
 	defer func() {
