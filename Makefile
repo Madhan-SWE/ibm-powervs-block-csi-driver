@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PKG=sigs.k8s.io/ibm-powervs-block-csi-driver
-IMAGE?=quay.io/powercloud/ibm-powervs-block-csi-driver
+PKG=github.com/ppc64le-cloud/powervs-csi-driver
+IMAGE?=quay.io/powercloud/powervs-csi-driver
 VERSION=v0.0.1
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -27,9 +27,9 @@ PLATFORM=linux/ppc64le
 
 .EXPORT_ALL_VARIABLES:
 
-.PHONY: bin/ibm-powervs-block-csi-driver
-bin/ibm-powervs-block-csi-driver: | bin
-	CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -ldflags ${LDFLAGS} -o bin/ibm-powervs-block-csi-driver ./cmd/
+.PHONY: bin/powervs-csi-driver
+bin/powervs-csi-driver: | bin
+	CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -ldflags ${LDFLAGS} -o bin/powervs-csi-driver ./cmd/
 
 .PHONY: test
 test:
@@ -41,7 +41,7 @@ image-release:
 
 .PHONY: image
 image:
-	docker build -t $(IMAGE):$(VERSION) . --target debian-base
+	docker build -t $(IMAGE):latest . --target debian-base
 
 .PHONY: push-release
 push-release:
@@ -49,8 +49,38 @@ push-release:
 
 .PHONY: push
 push:
-	docker push $(IMAGE):$(VERSION)
+	docker push $(IMAGE):latest
 
 .PHONY: clean
 clean:
 	rm -rf bin/*
+
+bin/mockgen: | bin
+	go install github.com/golang/mock/mockgen@v1.6.0
+
+bin/golangci-lint: | bin
+	echo "Installing golangci-lint..."
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.43.0
+
+mockgen: bin/mockgen
+	./hack/update-gomock
+
+.PHONY: verify
+verify: bin/golangci-lint
+	echo "verifying and linting files ..."
+	./hack/verify-all
+	echo "Congratulations! All Go source files have been linted."
+
+
+.PHONY: test-e2e
+test-e2e:
+	TEST_PATH=./tests/e2e/... \
+	GINKGO_FOCUS="\[powervs-csi-e2e\]" \
+	./hack/e2e/run.sh
+
+.PHONY: verify-vendor
+test: verify-vendor
+verify: verify-vendor
+verify-vendor:
+	@ echo; echo "### $@:"
+	@ ./hack/verify-vendor.sh
