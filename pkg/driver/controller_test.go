@@ -21,11 +21,11 @@ import (
 
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang/mock/gomock"
-	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/cloud"
-	mocks "github.com/ppc64le-cloud/powervs-csi-driver/pkg/cloud/mocks"
-	"github.com/ppc64le-cloud/powervs-csi-driver/pkg/util"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
+	mocks "sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud/mocks"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
 )
 
 const (

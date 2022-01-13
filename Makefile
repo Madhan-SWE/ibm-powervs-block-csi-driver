@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-PKG=github.com/ppc64le-cloud/powervs-csi-driver
+PKG=sigs.k8s.io/ibm-powervs-block-csi-driver
 IMAGE?=quay.io/powercloud/powervs-csi-driver
 VERSION=v0.0.1
 GIT_COMMIT?=$(shell git rev-parse HEAD)
