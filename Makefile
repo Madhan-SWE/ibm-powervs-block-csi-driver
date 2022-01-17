@@ -77,6 +77,12 @@ verify: bin/golangci-lint
 	./hack/verify-all
 	echo "Congratulations! All Go source files have been linted."
 
+.PHONY: test-e2e
+test-e2e:
+	TEST_PATH="./tests/e2e/..."
+	GINKGO_FOCUS="\[powervs-csi-e2e\]"
+	./hack/e2e/run.sh
+
 .PHONY: verify-vendor
 test: verify-vendor
 verify: verify-vendor
