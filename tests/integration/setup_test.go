@@ -37,9 +37,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"google.golang.org/grpc"
-	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/cloud"
+	clientset "k8s.io/client-go/kubernetes"
+	"k8s.io/kubernetes/test/e2e/framework"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/driver"
 	"sigs.k8s.io/ibm-powervs-block-csi-driver/pkg/util"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/testsuites"
 )
 
 const (
@@ -50,6 +52,7 @@ var (
 	drv       *driver.Driver
 	csiClient *CSIClient
 	volClient *instance.IBMPIVolumeClient
+	cs        clientset.Interface
 )
 
 type User struct {
@@ -69,6 +72,8 @@ func TestIntegration(t *testing.T) {
 
 var _ = BeforeSuite(func() {
 	// Run CSI Driver in its own goroutine
+	f := framework.NewDefaultFramework("powervs-integration-tests")
+	cs = f.ClientSet
 	var err error
 	drv, err = driver.NewDriver(driver.WithEndpoint(endpoint))
 	Expect(err).To(BeNil())
@@ -120,15 +125,6 @@ func newCSIClient() (*CSIClient, error) {
 	}, nil
 }
 
-func newMetadata() (cloud.MetadataService, error) {
-	metadata, err := cloud.NewMetadataService(cloud.DefaultKubernetesAPIClient)
-	if err != nil {
-		return nil, err
-	}
-
-	return metadata, nil
-}
-
 func newVolClient() (*instance.IBMPIVolumeClient, error) {
 
 	apikey := os.Getenv("IBMCLOUD_API_KEY")
@@ -152,12 +148,11 @@ func newVolClient() (*instance.IBMPIVolumeClient, error) {
 		return nil, err
 	}
 
-	metadata, err := newMetadata()
+	cloudInstanceID, err := testsuites.GetCloudInstanceIdFromNodeLabels(cs)
 	if err != nil {
 		return nil, err
 	}
 
-	cloudInstanceID := metadata.GetCloudInstanceId()
 	resourceClient := ctrlv2.ResourceServiceInstanceV2()
 	in, err := resourceClient.GetInstance(cloudInstanceID)
 	if err != nil {
