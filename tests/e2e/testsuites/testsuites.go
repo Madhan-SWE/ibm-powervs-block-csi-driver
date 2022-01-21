@@ -556,3 +556,17 @@ func GetCloudInstanceIdFromNodeLabels(client clientset.Interface) (string, error
 
 	return "", fmt.Errorf("error getting cloudInstanceId")
 }
+
+// Method to get pvmInstanceId from Node labels
+func GetPvmInstanceIdFromNodeLabels(client clientset.Interface) (string, error) {
+	nodes, err := client.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return "", fmt.Errorf("error getting pvmInstanceId: %+v", err)
+	}
+
+	if pvmInstanceId, ok := nodes.Items[0].ObjectMeta.Labels[powervscloud.PvmInstanceIdLabel]; ok {
+		return pvmInstanceId, nil
+	}
+
+	return "", fmt.Errorf("error getting pvmInstanceId")
+}

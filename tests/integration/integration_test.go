@@ -28,6 +28,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/util/wait"
+	"sigs.k8s.io/ibm-powervs-block-csi-driver/tests/e2e/testsuites"
 )
 
 var (
@@ -76,10 +77,8 @@ var _ = Describe("PowerVS Block CSI Driver", func() {
 			Expect(err).To(BeNil(), "Error when trying to delete volume twice")
 		}()
 
-		// Attach, stage, publish, unpublish, unstage, detach
-		metadata, err := newMetadata()
-		Expect(err).To(BeNil())
-		nodeID := metadata.GetPvmInstanceId()
+		nodeID, err := testsuites.GetPvmInstanceIdFromNodeLabels(cs)
+		Expect(err).To(BeNil(), "Error when trying to get PVM Instance ID from node labels")
 		testAttachWriteReadDetach(volume.VolumeId, req.GetName(), nodeID, false)
 
 	})
