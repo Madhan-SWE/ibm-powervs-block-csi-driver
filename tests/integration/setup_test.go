@@ -32,6 +32,7 @@ import (
 	bxsession "github.com/IBM-Cloud/bluemix-go/session"
 	"github.com/IBM-Cloud/power-go-client/clients/instance"
 	"github.com/IBM-Cloud/power-go-client/ibmpisession"
+	"github.com/IBM/go-sdk-core/v5/core"
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
 	"github.com/golang-jwt/jwt"
 	. "github.com/onsi/ginkgo"
@@ -165,7 +166,9 @@ func newVolClient() (*instance.IBMPIVolumeClient, error) {
 		return nil, err
 	}
 
-	piSession, err := ibmpisession.New(bxSess.Config.IAMAccessToken, region, true, user.Account, zone)
+	authenticator := &core.IamAuthenticator{ApiKey: apikey}
+	piOptions := ibmpisession.IBMPIOptions{Authenticator: authenticator, Debug: true, Region: region, UserAccount: user.Account, Zone: zone}
+	piSession, err := ibmpisession.NewIBMPISession(&piOptions)
 	if err != nil {
 		return nil, err
 	}
