@@ -35,6 +35,7 @@ type KubernetesAPIClient func() (kubernetes.Interface, error)
 
 // Get default kubernetes API client
 var DefaultKubernetesAPIClient = func() (kubernetes.Interface, error) {
+	fmt.Printf("Rest incluster config : --")
 	// creates the in-cluster config
 	config, err := rest.InClusterConfig()
 	if err != nil {
