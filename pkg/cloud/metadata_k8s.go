@@ -40,11 +40,17 @@ var DefaultKubernetesAPIClient = func() (kubernetes.Interface, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("Rest incluster config : %v", config)
+
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Printf("cleintset: %v", clientset)
+
 	return clientset, nil
 }
 
