@@ -28,18 +28,18 @@ jobs:
       id-token: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set up Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
 
-    - name: Build
-      run: |
-        mkdir -p bin
-        make bin/ibm-powervs-block-csi-driver
+      - name: Build
+        run: |
+          mkdir -p bin
+          make bin/ibm-powervs-block-csi-driver
 
       # Workaround: https://github.com/docker/build-push-action/issues/461
       - name: Setup Docker buildx
