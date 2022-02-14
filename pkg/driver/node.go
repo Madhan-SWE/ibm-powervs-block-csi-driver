@@ -386,7 +386,7 @@ func (d *nodeService) NodeGetVolumeStats(ctx context.Context, req *csi.NodeGetVo
 	klog.V(4).Infof("NodeGetVolumeStats: called with args %+v", *req)
 	var resp *csi.NodeGetVolumeStatsResponse
 
-	if req == nil || req.VolumeId == "" {
+	if req.VolumeId == "" {
 		return nil, status.Error(codes.InvalidArgument, "Volume ID not provided")
 	}
 

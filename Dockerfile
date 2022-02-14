@@ -11,11 +11,11 @@ COPY ./bin/ibm-powervs-block-csi-driver /bin/ibm-powervs-block-csi-driver
 
 ENTRYPOINT ["/bin/ibm-powervs-block-csi-driver"]
 
-FROM --platform=linux/ppc64le registry.access.redhat.com/ubi8/ubi:8.5 AS rhel-base
-RUN yum --disableplugin=subscription-manager -y install httpd php \
-  && yum --disableplugin=subscription-manager clean all
-RUN clean-install ca-certificates e2fsprogs mount udev util-linux xfsprogs
+#FROM --platform=linux/ppc64le registry.access.redhat.com/ubi8/ubi:8.5 AS rhel-base
+#RUN yum --disableplugin=subscription-manager -y install httpd php \
+#  && yum --disableplugin=subscription-manager clean all
+#RUN clean install ca-certificates e2fsprogs mount udev util-linux xfsprogs
 # COPY --from=builder /go/src/sigs.k8s.io/ibm-powervs-block-csi-driver/bin/ibm-powervs-block-csi-driver /bin/ibm-powervs-block-csi-driver
-COPY ./bin/ibm-powervs-block-csi-driver /bin/ibm-powervs-block-csi-driver
+#COPY ./bin/ibm-powervs-block-csi-driver /bin/ibm-powervs-block-csi-driver
 
-ENTRYPOINT ["/bin/ibm-powervs-block-csi-driver"]
+#ENTRYPOINT ["/bin/ibm-powervs-block-csi-driver"]
