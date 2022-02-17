@@ -13,11 +13,15 @@
 # limitations under the License.
 
 PKG=sigs.k8s.io/ibm-powervs-block-csi-driver
-IMAGE?=quay.io/powercloud/ibm-powervs-block-csi-driver
-VERSION=v0.0.1
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-LDFLAGS?="-X ${PKG}/pkg/driver.driverVersion=${VERSION} -X ${PKG}/pkg/driver.gitCommit=${GIT_COMMIT} -X ${PKG}/pkg/driver.buildDate=${BUILD_DATE} -s -w"
+IMAGE?=ibm-powervs-block-csi-driver
+STAGING_REGISTRY ?= gcr.io/$(PROJECT)
+REGISTRY ?= $(STAGING_REGISTRY)
+STAGING_IMAGE ?= $(STAGING_REGISTRY)/$(IMAGE)
+TAG?=$(GIT_COMMIT)
+STAGING_VERSION=v1.0.0
+LDFLAGS?="-X ${PKG}/pkg/driver.driverVersion=${STAGING_VERSION} -X ${PKG}/pkg/driver.gitCommit=${GIT_COMMIT} -X ${PKG}/pkg/driver.buildDate=${BUILD_DATE} -s -w"
 
 GO111MODULE=on
 GOPROXY=direct
@@ -43,19 +47,23 @@ test:
 
 .PHONY: image-release
 image-release:
-	docker buildx build -t $(IMAGE):$(VERSION) . --target debian-base
+	docker buildx build -t $(STAGING_IMAGE):$(STAGING_VERSION) --push . --target debian-base
 
 .PHONY: image
 image:
-	docker build -t $(IMAGE):$(VERSION) . --target debian-base
+	docker build -t $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG) --push . --target debian-base
 
 .PHONY: push-release
 push-release:
-	docker push $(IMAGE):$(VERSION)
+	docker push $(STAGING_IMAGE):$(STAGING_VERSION)
 
 .PHONY: push
 push:
-	docker push $(IMAGE):$(VERSION)
+	docker push $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG)
+
+build-and-push-image: bin/ibm-powervs-block-csi-driver image push
+
+build-and-push-image-release: bin/ibm-powervs-block-csi-driver image-release push-release
 
 .PHONY: clean
 clean:
