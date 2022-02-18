@@ -28,18 +28,17 @@ GOPROXY=direct
 GOPATH=$(shell go env GOPATH)
 GOOS=$(shell go env GOOS)
 GOBIN=$(shell pwd)/bin
-
 PLATFORM=linux/ppc64le
-
 
 .EXPORT_ALL_VARIABLES:
 
 bin:
 	@mkdir -p $@
 
-.PHONY: bin/ibm-powervs-block-csi-driver
-bin/ibm-powervs-block-csi-driver: | bin
-	CGO_ENABLED=0 GOOS=linux GOARCH=ppc64le go build -ldflags ${LDFLAGS} -o bin/ibm-powervs-block-csi-driver ./cmd/
+.PHONY: driver
+bin/ibm-powervs-block-csi-driver:
+driver: | bin
+	CGO_ENABLED=0 GOOS=linux GOARCH=$(ARCH) go build -ldflags ${LDFLAGS} -o bin/ibm-powervs-block-csi-driver ./cmd/
 
 .PHONY: test
 test:
@@ -47,11 +46,11 @@ test:
 
 .PHONY: image-release
 image-release:
-	docker buildx build -t $(STAGING_IMAGE):$(STAGING_VERSION) --push . --target debian-base
+	docker build build -t $(STAGING_IMAGE):$(STAGING_VERSION) . --target debian-base
 
 .PHONY: image
 image:
-	docker build -t $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG) --push . --target debian-base
+	docker build -t $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG) . --target debian-base
 
 .PHONY: push-release
 push-release:
@@ -61,9 +60,43 @@ push-release:
 push:
 	docker push $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG)
 
-build-and-push-image: bin/ibm-powervs-block-csi-driver image push
+# Build the docker image for the core CSI driver.
+build-image-and-push: init-buildx
+	{                                                                   \
+	set -e ;                                                            \
+	docker buildx build \
+		--platform linux/ppc64le \
+		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
+		--build-arg BUILDPLATFORM=linux/amd64 \
+		--build-arg TARGETPLATFORM=linux/ppc64le \
+		-t $(STAGINGIMAGE):$(STAGINGVERSION) --push .; \
+	}
 
-build-and-push-image-release: bin/ibm-powervs-block-csi-driver image-release push-release
+build-image-and-push-linux-amd64: init-buildx
+	{                                                                   \
+	set -e ;                                                            \
+	docker buildx build \
+		--platform linux/amd64 \
+		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
+		--build-arg BUILDPLATFORM=linux/amd64 \
+		--build-arg TARGETPLATFORM=linux/amd64 \
+		-t $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_amd64 --push .; \
+	}
+
+build-image-and-push-linux-ppc64le: init-buildx
+	{                                                                   \
+	set -e ;                                                            \
+	docker buildx build \
+		--platform linux/ppc64le \
+		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
+		--build-arg BUILDPLATFORM=linux/amd64 \
+		--build-arg TARGETPLATFORM=linux/ppc64le \
+		-t $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_ppc64le --push .; \
+	}
+
+build-and-push-multi-arch: build-image-and-push-linux-arm64 build-image-and-push-linux-ppc64le
+	docker manifest create --amend $(STAGINGIMAGE):$(STAGINGVERSION) $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_amd64 $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_ppc64le
+	docker manifest push -p $(STAGINGIMAGE):$(STAGINGVERSION)
 
 .PHONY: clean
 clean:
@@ -91,3 +124,12 @@ verify: verify-vendor
 verify-vendor:
 	@ echo; echo "### $@:"
 	@ ./hack/verify-vendor.sh
+
+init-buildx:
+	# Ensure we use a builder that can leverage it (the default on linux will not)
+	-docker buildx rm multiarch-multiplatform-builder
+	docker buildx create --use --name=multiarch-multiplatform-builder
+	docker run --rm --privileged multiarch/qemu-user-static --reset --credential yes --persistent yes
+	# Register gcloud as a Docker credential helper.
+	# Required for "docker buildx build --push".
+	gcloud auth configure-docker --quiet

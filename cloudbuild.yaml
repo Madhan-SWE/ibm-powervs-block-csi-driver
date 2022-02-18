@@ -16,6 +16,6 @@ steps:
     - TAG=${_GIT_TAG}
     - HOME=/root
     args:
-    - build-and-push-image
+    - build-and-push-multi-arch
 substitutions:
   _STAGING_PROJECT: 'k8s-staging-cloud-provider-ibm'
