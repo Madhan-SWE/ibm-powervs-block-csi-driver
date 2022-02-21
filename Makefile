@@ -16,7 +16,7 @@ PKG=sigs.k8s.io/ibm-powervs-block-csi-driver
 GIT_COMMIT?=$(shell git rev-parse HEAD)
 BUILD_DATE?=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 IMAGE?=ibm-powervs-block-csi-driver
-STAGING_REGISTRY ?= gcr.io/$(PROJECT)
+STAGING_REGISTRY ?= rcmadhankumar
 REGISTRY ?= $(STAGING_REGISTRY)
 STAGING_IMAGE ?= $(STAGING_REGISTRY)/$(IMAGE)
 TAG?=$(GIT_COMMIT)
@@ -69,7 +69,7 @@ build-image-and-push: init-buildx
 		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
 		--build-arg BUILDPLATFORM=linux/amd64 \
 		--build-arg TARGETPLATFORM=linux/ppc64le \
-		-t $(STAGINGIMAGE):$(STAGINGVERSION) --push .; \
+		-t $(STAGING_IMAGE):$(STAGINGVERSION) --push .; \
 	}
 
 build-image-and-push-linux-amd64: init-buildx
@@ -77,26 +77,26 @@ build-image-and-push-linux-amd64: init-buildx
 	set -e ;                                                            \
 	docker buildx build \
 		--platform linux/amd64 \
-		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
+		--build-arg STAGINGVERSION=$(STAGING_VERSION) \
 		--build-arg BUILDPLATFORM=linux/amd64 \
 		--build-arg TARGETPLATFORM=linux/amd64 \
-		-t $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_amd64 --push .; \
+		-t $(STAGING_IMAGE):$(STAGING_VERSION)_linux_amd64 --push .; \
 	}
 
-build-image-and-push-linux-ppc64le: init-buildx
+build-image-and-push-linux-ppc64le: 
 	{                                                                   \
 	set -e ;                                                            \
 	docker buildx build \
 		--platform linux/ppc64le \
-		--build-arg STAGINGVERSION=$(STAGINGVERSION) \
+		--build-arg STAGINGVERSION=$(STAGING_VERSION) \
 		--build-arg BUILDPLATFORM=linux/amd64 \
 		--build-arg TARGETPLATFORM=linux/ppc64le \
-		-t $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_ppc64le --push .; \
+		-t $(STAGING_IMAGE):$(STAGING_VERSION)_linux_ppc64le --push .; \
 	}
 
 build-and-push-multi-arch: build-image-and-push-linux-arm64 build-image-and-push-linux-ppc64le
-	docker manifest create --amend $(STAGINGIMAGE):$(STAGINGVERSION) $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_amd64 $(STAGINGIMAGE):$(STAGINGVERSION)-$(TAG)_linux_ppc64le
-	docker manifest push -p $(STAGINGIMAGE):$(STAGINGVERSION)
+	docker manifest create --amend $(STAGING_IMAGE):$(STAGING_VERSION) $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG)_linux_amd64 $(STAGING_IMAGE):$(STAGING_VERSION)-$(TAG)_linux_ppc64le
+	docker manifest push -p $(STAGING_IMAGE):$(STAGING_VERSION)
 
 .PHONY: clean
 clean:

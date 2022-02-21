@@ -19,8 +19,8 @@ ARG TARGETPLATFORM
 RUN ARCH=$(echo $TARGETPLATFORM | cut -f2 -d '/') make driver
 
 FROM --platform=linux/ppc64le k8s.gcr.io/build-image/debian-base:v2.1.3 AS debian-base
-RUN clean-install ca-certificates e2fsprogs mount udev util-linux xfsprogs
-RUN clean-install bash multipath-tools sg3-utils
+RUN apt install ca-certificates e2fsprogs mount udev util-linux xfsprogs
+RUN apt install bash multipath-tools sg3-utils
 # Copy driver binary from builder
 COPY --from=builder /bin/ibm-powervs-block-csi-driver /ibm-powervs-block-csi-driver
 ENTRYPOINT ["/ibm-powervs-block-csi-driver"]
@@ -28,7 +28,7 @@ ENTRYPOINT ["/ibm-powervs-block-csi-driver"]
 FROM --platform=linux/ppc64le registry.access.redhat.com/ubi8/ubi:8.5 AS rhel-base
 RUN yum --disableplugin=subscription-manager -y install httpd php \
   && yum --disableplugin=subscription-manager clean all
-RUN clean-install ca-certificates e2fsprogs mount udev util-linux xfsprogs
+RUN yum install ca-certificates e2fsprogs mount udev util-linux xfsprogs
 # Copy driver binary from builder
 COPY --from=builder /bin/ibm-powervs-block-csi-driver /ibm-powervs-block-csi-driver
 ENTRYPOINT ["/ibm-powervs-block-csi-driver"]
