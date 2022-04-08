@@ -4,7 +4,8 @@ bases:
   - ../../base
 images:
   - name: gcr.io/k8s-staging-cloud-provider-ibm/ibm-powervs-block-csi-driver
-    newTag: main
+    newImage: rcmadhankumar/ibm-powervs-block-csi-driver
+    newTag: 0e2a8ef
   - name: k8s.gcr.io/sig-storage/csi-provisioner
     newTag: v3.1.0
   - name: k8s.gcr.io/sig-storage/csi-attacher
