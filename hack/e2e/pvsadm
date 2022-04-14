@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -euo pipefail
+
+function pvsadm_install() {
+  INSTALL_PATH=${1}
+  PVSADM_VERSION=${2}
+  if [[ ! -e ${INSTALL_PATH}/pvsadm ]]; then
+    PVSADM_DOWNLOAD_URL="https://github.com/ppc64le-cloud/pvsadm/releases/download/${PVSADM_VERSION}/pvsadm-linux-amd64"
+    curl --silent --location "${PVSADM_DOWNLOAD_URL}" -o pvsadm
+    chmod +x ./pvsadm
+    mv pvsadm "${INSTALL_PATH}"
+  fi
+}
