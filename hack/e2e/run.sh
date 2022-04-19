@@ -39,6 +39,17 @@ PORT_DESCRIPTION=${PORT_DESCRIPTION:-capi-port}
 DNS_SERVERS=${DNS_SERVERS:-8.8.8.8 9.9.9.9}
 SERVICE_INSTANCE_ID=${SERVICE_INSTANCE_ID:-749e3492-1ff4-4d45-b43c-513674930661}
 
+# powervs csi driver configuration
+POWERVS_CSI_DRIVER_VERSION=${POWERVS_CSI_DRIVER:-v0.1.0}
+
+# ginkgo configuration
+TEST_PATH=${TEST_PATH:-"./tests/e2e/..."}
+ARTIFACTS=${ARTIFACTS:-"${TEST_DIR}/artifacts"}
+GINKGO_FOCUS=${GINKGO_FOCUS:-"\[ebs-csi-e2e\]"}
+GINKGO_SKIP=${GINKGO_SKIP:-"\[Disruptive\]"}
+GINKGO_NODES=${GINKGO_NODES:-2}
+TEST_EXTRA_FLAGS=${TEST_EXTRA_FLAGS:-}
+
 # capi cluster deployment configuration
 CLUSTER_NAME=${CLUSTER_NAME:-ibm-powervs-1}
 IMAGE_NAME=${IMAGE_NAME:-capibm-powervs-centos-8-1-22-4}
@@ -127,6 +138,46 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# get and export the kubeconfig
+clusterctl get kubeconfig $CLUSTER_NAME > ~/.kube/$CLUSTER_NAME
+export KUBECONFIG=~/.kube/$CLUSTER_NAME
+
+#get nodes
+kubectl get nodes
+
+# ginkgo installation
+loudecho "Installing ginkgo to ${BIN_DIR}"
+GINKGO_BIN=${BIN_DIR}/ginkgo
+if [[ ! -e ${GINKGO_BIN} ]]; then
+  pushd /tmp
+  GOPATH=${TEST_DIR} GOBIN=${BIN_DIR} GO111MODULE=on go install github.com/onsi/ginkgo/ginkgo@v1.12.0
+  popd
+fi
+
+# csi driver deployment
+loudecho "Deploying driver"
+kubectl apply --kubeconfig "${KUBECONFIG}" -k "https://github.com/kubernetes-sigs/ibm-powervs-block-csi-driver/deploy/kubernetes/overlays/stable/?ref=${POWERVS_CSI_DRIVER_VERSION}"
+loudecho "Driver deployment completed"
+
+loudecho "Running tests"
+eval "EXPANDED_TEST_EXTRA_FLAGS=$TEST_EXTRA_FLAGS"
+set -x
+set +e
+${GINKGO_BIN} -p -nodes="${GINKGO_NODES}" -v --focus="${GINKGO_FOCUS}" --skip="${GINKGO_SKIP}" "${TEST_PATH}" -- -kubeconfig="${KUBECONFIG}" -report-dir="${ARTIFACTS}"
+TEST_PASSED=$?
+set -e
+set +x
+loudecho "TEST_PASSED: ${TEST_PASSED}"
+
+PODS=$(kubectl get pod -n kube-system -o json --kubeconfig "${KUBECONFIG}" | jq -r .items[].metadata.name)
+
+while IFS= read -r POD; do
+  loudecho "Printing pod ${POD} ${CONTAINER_NAME} container logs"
+  set +e
+  kubectl logs "${POD}" -n kube-system "${CONTAINER_NAME}" \
+    --kubeconfig "${KUBECONFIG}"
+  set -e
+done <<< "${PODS}"
 
 
 # # deleting capi cluster
