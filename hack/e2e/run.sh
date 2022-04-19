@@ -29,7 +29,7 @@ source "${BASE_DIR}"/clusterctl.sh
 # prerequisites and versions
 KIND_VERSION=${KIND_VERSION:-v0.12.0}
 PVSADM_VERSION=${PVSADM_VERSION:-v0.1.4 }
-IBMCLOUDCLI_VERSION=${IBMCLOUDCLI_VERSION:-v2.6.0}
+IBMCLOUDCLI_VERSION=${IBMCLOUDCLI_VERSION:-2.6.0}
 KUBECTL_VERSION=${KUBECTL_VERSION:-v1.23.0}
 CLUSTERCTL_VERSION=${CLUSTERCTL_VERSION:-v1.1.3}
 
@@ -49,17 +49,18 @@ CONTROL_PLANE_MACHINE_COUNT=${CONTROL_PLANE_MACHINE_COUNT:-3}
 WORKER_MACHINE_COUNT=${WORKER_MACHINE_COUNT:-1}
 CLUSTER_TEMPLATE_FILE=${CLUSTER_TEMPLATE_FILE:-./cluster-template-powervs.yaml}
 SSHKEY_NAME=${SSHKEY_NAME:-my-pub-key}
-VIP_CIDR=${VIP_CIDR}
+VIP_CIDR=${VIP_CIDR:-29}
 
 # Installing prerequisites to BIN_DIR
 # Installing kubectl
 loudecho "Installing kubectl ${KUBECTL_VERSION} to ${BIN_DIR}"
 kubectl_install "${BIN_DIR}" "${KUBECTL_VERSION}"
-KIND_BIN="${BIN_DIR}/kind"
+KUBECTL_BIN="${BIN_DIR}/kubectl"
 
 # Installing kind
 loudecho "Installing kind ${KIND_VERSION} to ${BIN_DIR}"
 kind_install "${BIN_DIR}" "${KIND_VERSION}"
+KIND_BIN="${BIN_DIR}/kind"
 
 # Installing pvsadm
 loudecho "Installing pvsadm ${PVSADM_VERSION} to ${BIN_DIR}"
@@ -69,7 +70,7 @@ PVSADM_BIN="${BIN_DIR}/pvsadm"
 # Installing ibmcloud cli
 loudecho "Installing ibmcloud cli ${IBMCLOUDCLI_VERSION} to ${BIN_DIR}"
 ibmcloudcli_install "${BIN_DIR}" "${IBMCLOUDCLI_VERSION}"
-IBMCLOUD_CLI_BIN="${BIN_DIR}/ibmcloud"
+IBMCLOUD_CLI_BIN="${BIN_DIR}/bin/Bluemix_CLI/bin/ibmcloud"
 
 # Installing clusterctl
 loudecho "Installing clusterctl ${CLUSTERCTL_VERSION} to ${BIN_DIR}"
@@ -84,9 +85,23 @@ ${IBMCLOUD_CLI_BIN} pi network-create-public ${NETWORK_NAME} --dns-servers ${DNS
 
 # create powervs network port
 OUTPUT=$(${PVSADM_BIN} --description "${PORT_DESCRIPTION}" --network "${NETWORK_NAME}" --instance-id "${SERVICE_INSTANCE_ID}")
-echo "-----------------  OUTPUT Create port ------------------------"
+echo "-----------------  OUTPUT Create port ------------------------ ${OUTPUT}"
 VIP_EXTERNAL=$(echo $OUTPUT | grep "${PORT_DESCRIPTION}" | cut -d '|' -f3  | tr -d ' ')
 VIP=$(echo $OUTPUT | grep "${PORT_DESCRIPTION}" | cut -d '|' -f4  | tr -d ' ')
+
+echo "SSHKEY_NAME $SSHKEY_NAME \n" \
+    "VIP $VIP \n" \
+    "VIP_EXTERNAL $VIP_EXTERNAL \n" \
+    "VIP_CIDR $VIP_CIDR\n" \
+    "IMAGE_NAME $IMAGE_NAME \n" \
+    "SERVICE_INSTANCE_ID $SERVICE_INSTANCE_ID \n" \
+    "NETWORK_NAME $NETWORK_NAME  \n" \
+    "CLUSTER_NAME $CLUSTER_NAME \n" \
+    "KUBERNETES_VERSION $KUBERNETES_VERSION \n" \
+    "TARGET_NAMESPACE $TARGET_NAMESPACE \n" \
+    "CONTROL_PLANE_MACHINE_COUNT $CONTROL_PLANE_MACHINE_COUNT \n" \
+    "WORKER_MACHINE_COUNT $WORKER_MACHINE_COUNT \n" \
+    "CLUSTER_TEMPLATE_FILE $CLUSTER_TEMPLATE_FILE \n"
 
 # creating capi cluster
 clusterctl_create_cluster \
@@ -103,6 +118,8 @@ clusterctl_create_cluster \
     "$CONTROL_PLANE_MACHINE_COUNT" \
     "$WORKER_MACHINE_COUNT" \
     "$CLUSTER_TEMPLATE_FILE"
+
+
 if [[ $? -ne 0 ]]; then
     exit 1
 fi

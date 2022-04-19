@@ -6,7 +6,7 @@ function kubectl_install() {
     KUBECTL_DOWNLOAD_URL="https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl"
     curl --silent --location "${KUBECTL_DOWNLOAD_URL}" -o kubectl
     chmod +x ./kubectl
-    mv kubectl "${INSTALL_PATH}"kubectl
+    mv kubectl "${INSTALL_PATH}"
   fi
 }
 
@@ -18,7 +18,7 @@ function kind_install() {
     KIND_DOWNLOAD_URL="https://kind.sigs.k8s.io/dl/${KIND_VERSION}/kind-$(uname)-amd64"
     curl --silent --location "${KIND_DOWNLOAD_URL}" -o kind
     chmod +x ./kind
-    mv kind "${INSTALL_PATH}"kind
+    mv kind "${INSTALL_PATH}"
   fi
 }
 
@@ -41,6 +41,5 @@ function ibmcloudcli_install() {
   if [[ ! -e ${INSTALL_PATH}/eksctl ]]; then
     IBMCLOUDCLI_DOWNLOAD_URL="https://download.clis.cloud.ibm.com/ibm-cloud-cli/${IBMCLOUDCLI_VERSION}/IBM_Cloud_CLI_${IBMCLOUDCLI_VERSION}_amd64.tar.gz"
     curl --silent --location "${IBMCLOUDCLI_DOWNLOAD_URL}"| tar xz -C "${INSTALL_PATH}"
-    chmod +x "${INSTALL_PATH}"/ibmcloud
   fi
 }
