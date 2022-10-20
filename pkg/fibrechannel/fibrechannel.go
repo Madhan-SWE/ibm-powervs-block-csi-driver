@@ -21,8 +21,10 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/golang/glog"
+	"go.uber.org/zap"
 
 	"errors"
 	"path"
@@ -107,18 +109,40 @@ func findDeviceForPath(path string, io ioHandler) (string, error) {
 	return "", errors.New("Illegal path for device " + devicePath)
 }
 
-func scsiHostRescan(io ioHandler) error {
-	scsiPath := "/sys/class/scsi_host/"
-	if dirs, err := io.ReadDir(scsiPath); err == nil {
-		for _, f := range dirs {
-			name := scsiPath + f.Name() + "/scan"
-			data := []byte("- - -")
-			err := io.WriteFile(name, data, 0666)
-			if err != nil {
-				return fmt.Errorf("scsi host rescan failed : error: %v", err)
-			}
-		}
+// func scsiHostRescan(io ioHandler) error {
+// 	scsiPath := "/sys/class/scsi_host/"
+// 	if dirs, err := io.ReadDir(scsiPath); err == nil {
+// 		for _, f := range dirs {
+// 			name := scsiPath + f.Name() + "/scan"
+// 			data := []byte("- - -")
+// 			err := io.WriteFile(name, data, 0666)
+// 			if err != nil {
+// 				return fmt.Errorf("scsi host rescan failed : error: %v", err)
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
+
+func udevadmTrigger() error {
+	glog.Infof("CSINodeServer-udevadmTrigger refreshing all devices...")
+	out, err := exec.Command(
+		"udevadm",
+		"trigger",
+		"--action=change",
+	).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("udevadmTrigger: udevadm trigger failed, output %s, error: %v", string(out), err)
 	}
+
+	// Sleep for 20 seconds so that udevadm trigger will do its magic
+	duration, err := time.ParseDuration("20s")
+	if err != nil {
+		glog.Warningf("udevadmTrigger: time.ParseDuration failed", zap.Error(err))
+	}
+	time.Sleep(duration)
+
+	glog.Infof("udevadmTrigger: Successfully executed udevadm trigger to referesh all devices.")
 	return nil
 }
 
@@ -169,7 +193,7 @@ func searchDisk(c Connector, io ioHandler) (string, error) {
 		// rescan and search again
 		// rescan scsi bus
 
-		err := scsiHostRescan(io)
+		err := udevadmTrigger()
 		if err != nil {
 			return "", err
 		}
