@@ -322,6 +322,12 @@ func NewTestDeployment(c clientset.Interface, ns *v1.Namespace, command string, 
 						Labels: map[string]string{"app": selectorValue},
 					},
 					Spec: v1.PodSpec{
+						Tolerations: []v1.Toleration{
+							{
+								Key:      "node-role.kubernetes.io/control-plane",
+								Operator: "Exists",
+							},
+						},
 						Containers: []v1.Container{
 							{
 								Name:    "volume-tester",
@@ -447,6 +453,12 @@ func NewTestPod(c clientset.Interface, ns *v1.Namespace, command string) *TestPo
 				GenerateName: "powervs-volume-tester-",
 			},
 			Spec: v1.PodSpec{
+				Tolerations: []v1.Toleration{
+					{
+						Key:      "node-role.kubernetes.io/control-plane",
+						Operator: "Exists",
+					},
+				},
 				Containers: []v1.Container{
 					{
 						Name:         "volume-tester",
